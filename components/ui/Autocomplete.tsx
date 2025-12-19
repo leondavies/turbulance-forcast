@@ -50,6 +50,7 @@ export function Autocomplete({
     const searchAirports = async () => {
       if (query.length < 2) {
         setOptions([])
+        setIsOpen(false)
         return
       }
 
@@ -57,10 +58,11 @@ export function Autocomplete({
       try {
         const results = await onSearch(query)
         setOptions(results)
-        setIsOpen(true)
+        setIsOpen(results.length > 0)
       } catch (error) {
         console.error('Search error:', error)
         setOptions([])
+        setIsOpen(false)
       } finally {
         setIsLoading(false)
       }
@@ -75,6 +77,7 @@ export function Autocomplete({
     onChange(option.value)
     setIsOpen(false)
     setSelectedIndex(-1)
+    inputRef.current?.blur() // Close dropdown and remove focus
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

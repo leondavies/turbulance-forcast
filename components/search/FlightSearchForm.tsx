@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button, Autocomplete } from '@/components/ui'
 import type { FlightSearchParams } from '@/types'
@@ -16,7 +16,7 @@ export function FlightSearchForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const searchAirports = async (query: string) => {
+  const searchAirports = useCallback(async (query: string) => {
     const res = await fetch(`/api/airports?q=${encodeURIComponent(query)}`)
     const data = await res.json()
 
@@ -26,7 +26,7 @@ export function FlightSearchForm() {
       value: airport.iata,
       label: `${airport.iata} - ${airport.city}, ${airport.country} (${airport.name})`,
     }))
-  }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
