@@ -3,64 +3,74 @@ import { FlightSearchForm } from '@/components/search/FlightSearchForm'
 
 export default function Home() {
   return (
-    <div className="bg-gradient-to-b from-blue-50 to-white min-h-[calc(100vh-4rem)]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-700">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+        </div>
+      </div>
+
+      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <div className="inline-block text-6xl mb-4">✈️</div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-12 animate-fade-in">
+          <div className="inline-block text-7xl mb-6 animate-bounce-slow">✈️</div>
+          <h1 className="text-6xl md:text-7xl font-extrabold text-white mb-6 drop-shadow-lg">
             Turbli
           </h1>
-          <p className="text-xl text-gray-600 mb-2">
+          <p className="text-2xl md:text-3xl text-blue-100 mb-4 font-medium">
             Flight Turbulence Forecast
           </p>
-          <p className="text-gray-500">
-            Real-time turbulence predictions for your flight
+          <p className="text-lg text-blue-200 max-w-2xl mx-auto">
+            Real-time turbulence predictions powered by NOAA weather data
           </p>
         </div>
 
         {/* Search Card */}
-        <Card padding="lg" className="shadow-xl">
-          <CardHeader>
-            <CardTitle>
-              Check Your Flight
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FlightSearchForm />
-          </CardContent>
-        </Card>
-
-        {/* Info Section */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-6">
-            <div className="text-3xl mb-2">📊</div>
-            <h3 className="font-semibold text-gray-900 mb-2">Real Data</h3>
-            <p className="text-sm text-gray-600">
-              Powered by NOAA/NWS weather forecasts
-            </p>
-          </div>
-          <div className="text-center p-6">
-            <div className="text-3xl mb-2">⏱️</div>
-            <h3 className="font-semibold text-gray-900 mb-2">36-Hour Forecast</h3>
-            <p className="text-sm text-gray-600">
-              Advanced predictions for flights within 36 hours
-            </p>
-          </div>
-          <div className="text-center p-6">
-            <div className="text-3xl mb-2">🎯</div>
-            <h3 className="font-semibold text-gray-900 mb-2">Aircraft-Specific</h3>
-            <p className="text-sm text-gray-600">
-              Forecasts adjusted for your aircraft type
-            </p>
-          </div>
+        <div className="max-w-4xl mx-auto animate-slide-up">
+          <Card padding="lg" className="shadow-2xl backdrop-blur-sm bg-white/95 border-0">
+            <CardHeader>
+              <CardTitle className="text-3xl text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Search Your Flight
+              </CardTitle>
+              <p className="text-center text-gray-500 mt-2">
+                Enter your flight details to get turbulence predictions
+              </p>
+            </CardHeader>
+            <CardContent>
+              <FlightSearchForm />
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Disclaimer */}
-        <div className="mt-12 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-sm text-yellow-800 text-center">
-            <strong>Note:</strong> Phase 1 - UI Demo. Actual weather data integration coming in later phases.
-          </p>
+        {/* Info Section */}
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {[
+            { icon: '📊', title: 'Real Data', desc: 'Powered by NOAA/NWS weather forecasts' },
+            { icon: '⏱️', title: '36-Hour Forecast', desc: 'Advanced predictions for upcoming flights' },
+            { icon: '🎯', title: 'Aircraft-Specific', desc: 'Forecasts adjusted for your aircraft type' }
+          ].map((item, idx) => (
+            <div
+              key={idx}
+              className="text-center p-8 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl transform hover:scale-105 transition-all duration-300 hover:shadow-2xl"
+            >
+              <div className="text-5xl mb-4">{item.icon}</div>
+              <h3 className="font-bold text-xl text-gray-900 mb-3">{item.title}</h3>
+              <p className="text-gray-600">
+                {item.desc}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Features */}
+        <div className="mt-16 text-center">
+          <div className="inline-flex items-center gap-2 bg-green-500 text-white px-6 py-3 rounded-full shadow-lg font-semibold text-lg animate-pulse">
+            <span className="inline-block w-3 h-3 bg-white rounded-full animate-ping"></span>
+            Live Flight Data Connected
+          </div>
         </div>
       </div>
     </div>
