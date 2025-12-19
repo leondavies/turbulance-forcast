@@ -102,7 +102,7 @@ pnpm start
 ## Project Structure
 
 ```
-/Users/leon/Sites/turb/
+/Users/leon/Sites/turbulance-forcast/
 ├── app/                    # Next.js App Router pages
 │   ├── layout.tsx         # Root layout with Header/Footer
 │   ├── page.tsx           # Home page with search form
