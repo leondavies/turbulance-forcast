@@ -6,6 +6,7 @@ import { Card, CardContent, Loading, Button } from '@/components/ui'
 import { TurbulenceMap } from './TurbulenceMap'
 import { TurbulenceSummary } from './TurbulenceSummary'
 import { RouteSegments } from './RouteSegments'
+import { TurbulenceChart } from './TurbulenceChart'
 
 interface ForecastData {
   success: boolean
@@ -169,12 +170,28 @@ export function ForecastContent() {
           />
         </div>
 
+        {/* Turbulence Chart */}
+        <div className="mb-6">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20 p-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">Turbulence Forecast Chart</h2>
+              <p className="text-gray-600 mt-1">Turbulence levels throughout your flight</p>
+            </div>
+            <TurbulenceChart
+              forecast={forecast.forecast}
+              route={forecast.route}
+              origin={forecast.origin.iata}
+              destination={forecast.destination.iata}
+            />
+          </div>
+        </div>
+
         {/* Map */}
         <div className="mb-6">
           <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl overflow-hidden border border-white/20">
             <div className="p-6 border-b border-gray-100">
-              <h2 className="text-2xl font-bold text-gray-900">Flight Path & Turbulence Map</h2>
-              <p className="text-gray-600 mt-1">Interactive route visualization with turbulence levels</p>
+              <h2 className="text-2xl font-bold text-gray-900">Flight Path & Route Map</h2>
+              <p className="text-gray-600 mt-1">Geographic visualization of your route</p>
             </div>
             <div className="h-[500px]">
               <TurbulenceMap
