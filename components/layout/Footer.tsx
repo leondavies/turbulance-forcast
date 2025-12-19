@@ -4,50 +4,81 @@ export function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200 mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="text-2xl">✈️</div>
-              <span className="text-lg font-bold text-gray-900">TurbCast</span>
+    <footer className="bg-gray-900 text-white mt-auto">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+          <div className="md:col-span-2">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="text-4xl">✈️</div>
+              <span className="text-3xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                TurbCast
+              </span>
             </div>
-            <p className="text-sm text-gray-600">
-              Real-time turbulence forecasts for your flight. Plan your journey with confidence.
+            <p className="text-gray-300 text-lg mb-6 max-w-md">
+              Real-time turbulence forecasts for your flight. Plan your journey with confidence using NOAA weather data.
             </p>
+            <div className="flex gap-4">
+              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                <span className="text-xl">𝕏</span>
+              </a>
+              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                <span className="text-xl">in</span>
+              </a>
+              <a href="#" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors">
+                <span className="text-xl">f</span>
+              </a>
+            </div>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Quick Links</h3>
-            <ul className="space-y-2 text-sm">
+            <h3 className="font-bold text-white mb-6 text-lg">Quick Links</h3>
+            <ul className="space-y-3">
               <li>
-                <Link href="/" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  Home
+                <Link href="/" className="text-gray-300 hover:text-white transition-colors flex items-center gap-2">
+                  <span>→</span> Home
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="text-gray-600 hover:text-blue-600 transition-colors">
-                  About
+                <Link href="/about" className="text-gray-300 hover:text-white transition-colors flex items-center gap-2">
+                  <span>→</span> About
+                </Link>
+              </li>
+              <li>
+                <Link href="/#search" className="text-gray-300 hover:text-white transition-colors flex items-center gap-2">
+                  <span>→</span> Search Flights
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">Data Sources</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li>NOAA/NWS Weather Data</li>
-              <li>Met Office Thunderstorm Forecasts</li>
-              <li>AviationStack Flight Data</li>
+            <h3 className="font-bold text-white mb-6 text-lg">Data Sources</h3>
+            <ul className="space-y-3 text-gray-300">
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-1">✓</span>
+                <span>NOAA/NWS Weather Data</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-1">✓</span>
+                <span>Met Office Forecasts</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-blue-400 mt-1">✓</span>
+                <span>AviationStack Flight Data</span>
+              </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-600">
-          <p>&copy; {currentYear} TurbCast. All rights reserved.</p>
-          <p className="mt-2 text-xs">
-            Weather forecasts are for informational purposes only. Always follow official airline guidance.
-          </p>
+        <div className="pt-8 border-t border-gray-800">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-400 text-sm">
+              &copy; {currentYear} TurbCast. All rights reserved.
+            </p>
+            <p className="text-gray-500 text-xs text-center md:text-right max-w-xl">
+              Weather forecasts are for informational purposes only. Always follow official airline guidance.
+            </p>
+          </div>
         </div>
       </div>
     </footer>
