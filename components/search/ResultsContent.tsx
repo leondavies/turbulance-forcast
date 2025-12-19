@@ -146,7 +146,12 @@ export function ResultsContent() {
                   key={flight.id}
                   className="hover:shadow-xl transition-shadow duration-300 cursor-pointer"
                   onClick={() => {
-                    alert(`Turbulence forecast for ${flight.flightNumber} coming in Phase 3-4!`)
+                    const params = new URLSearchParams({
+                      origin: flight.origin.iata,
+                      destination: flight.destination.iata,
+                      flightNumber: flight.flightNumber,
+                    })
+                    router.push(`/forecast?${params.toString()}`)
                   }}
                 >
                   <CardContent className="p-6">
@@ -223,8 +228,10 @@ export function ResultsContent() {
 
                     {/* Click Hint */}
                     <div className="mt-4 text-center">
-                      <div className="text-sm text-gray-500">
-                        Click to view turbulence forecast →
+                      <div className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 px-4 py-2 rounded-full">
+                        <span>✈️</span>
+                        Click to view turbulence forecast
+                        <span>→</span>
                       </div>
                     </div>
                   </CardContent>
