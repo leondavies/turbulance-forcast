@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Map, { MapRef, Source, Layer, Marker } from 'react-map-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
 import { getTurbulenceColor } from '@/services/weather/mockTurbulence'
 
 interface TurbulenceMapProps {
@@ -17,19 +15,8 @@ interface TurbulenceMapProps {
   }>
 }
 
-// For development without Mapbox token, we'll create a simple SVG map
+// SVG-based flight path map
 export function TurbulenceMap({ origin, destination, forecast }: TurbulenceMapProps) {
-  const hasMapbox = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-
-  if (!hasMapbox) {
-    return <SimpleSVGMap origin={origin} destination={destination} forecast={forecast} />
-  }
-
-  return <MapboxMap origin={origin} destination={destination} forecast={forecast} />
-}
-
-// Simple SVG-based map for when Mapbox isn't available
-function SimpleSVGMap({ origin, destination, forecast }: TurbulenceMapProps) {
   const width = 800
   const height = 500
   const padding = 50
@@ -144,47 +131,5 @@ function SimpleSVGMap({ origin, destination, forecast }: TurbulenceMapProps) {
         </div>
       </div>
     </div>
-  )
-}
-
-// Mapbox-based map (for when token is available)
-function MapboxMap({ origin, destination, forecast }: TurbulenceMapProps) {
-  const mapRef = useRef<MapRef>(null)
-  const [viewState, setViewState] = useState({
-    longitude: (origin.lon + destination.lon) / 2,
-    latitude: (origin.lat + destination.lat) / 2,
-    zoom: 3,
-  })
-
-  useEffect(() => {
-    if (mapRef.current) {
-      const map = mapRef.current.getMap()
-      const bounds = [
-        [Math.min(origin.lon, destination.lon), Math.min(origin.lat, destination.lat)],
-        [Math.max(origin.lon, destination.lon), Math.max(origin.lat, destination.lat)],
-      ]
-      map.fitBounds(bounds as any, { padding: 100, duration: 1000 })
-    }
-  }, [origin, destination])
-
-  return (
-    <Map
-      ref={mapRef}
-      {...viewState}
-      onMove={(evt) => setViewState(evt.viewState)}
-      mapStyle="mapbox://styles/mapbox/light-v11"
-      mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-    >
-      <Marker longitude={origin.lon} latitude={origin.lat}>
-        <div className="bg-blue-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-          {origin.iata}
-        </div>
-      </Marker>
-      <Marker longitude={destination.lon} latitude={destination.lat}>
-        <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-          {destination.iata}
-        </div>
-      </Marker>
-    </Map>
   )
 }
