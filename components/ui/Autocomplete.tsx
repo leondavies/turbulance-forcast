@@ -100,7 +100,7 @@ export function Autocomplete({
 
   return (
     <div ref={wrapperRef} className="relative w-full">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block text-sm font-semibold text-gray-700 mb-2">
         {label}
       </label>
 
@@ -124,8 +124,8 @@ export function Autocomplete({
           placeholder={placeholder}
           required={required}
           className="w-full pl-14 pr-4 py-4 text-lg border-2 border-gray-200 rounded-2xl shadow-sm
-                     focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
-                     transition-all duration-200 bg-white/80 backdrop-blur-sm
+                     focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20
+                     hover:border-gray-300 transition-all duration-200 bg-white
                      placeholder:text-gray-400"
         />
 

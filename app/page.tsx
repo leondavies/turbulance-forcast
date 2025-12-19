@@ -13,9 +13,9 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         {/* Hero Section */}
-        <div className="text-center mb-12 animate-fade-in">
+        <div className="text-center mb-16 animate-fade-in">
           <div className="inline-block text-7xl mb-6 animate-bounce-slow">✈️</div>
           <h1 className="text-6xl md:text-7xl font-extrabold text-white mb-6 drop-shadow-lg">
             TurbCast
@@ -30,9 +30,9 @@ export default function Home() {
 
         {/* Search Card */}
         <div className="max-w-5xl mx-auto animate-slide-up">
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-12 border border-white/20">
-            <div className="mb-8 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-10 md:p-14 border border-white/20">
+            <div className="mb-10 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
                 Find Your Flight
               </h2>
               <p className="text-gray-600 text-lg">

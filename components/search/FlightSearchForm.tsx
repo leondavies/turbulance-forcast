@@ -130,15 +130,15 @@ export function FlightSearchForm() {
       </div>
 
       {/* Optional Filters */}
-      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-100">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 border border-blue-100">
+        <h3 className="text-base font-semibold text-gray-800 mb-5 flex items-center gap-2">
           <span>⚙️</span>
           Optional Filters
         </h3>
 
         <div className="grid grid-cols-1 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Departure Date (Optional)
             </label>
             <input
@@ -149,8 +149,8 @@ export function FlightSearchForm() {
               }
               min={new Date().toISOString().split('T')[0]}
               className="w-full px-4 py-3 text-base border-2 border-gray-200 rounded-xl shadow-sm
-                         focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10
-                         transition-all duration-200 bg-white/80 backdrop-blur-sm"
+                         focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20
+                         hover:border-gray-300 transition-all duration-200 bg-white"
             />
             <p className="mt-2 text-xs text-yellow-700 flex items-center gap-2">
               <span>💡</span>
