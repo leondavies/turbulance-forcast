@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Airport {
+  id        String @id @default(cuid())
+  iata      String @unique
+  icao      String @unique
+  name      String
+  city      String
+  country   String
+  latitude  Float
+  longitude Float
+  elevation Int // feet
+  timezone  String
+
+  @@index([iata])
+  @@index([icao])
+}
+
+model Aircraft {
+  id                 String  @id @default(cuid())
+  iata               String  @unique
+  name               String
+  manufacturer       String
+  maxTakeoffWeight   Int // kg
+  wingArea           Float? // m²
+  cruiseSpeed        Int // knots
+  cruiseAltitude     Int // feet
+  typicalFlightLevel Int // e.g., 350 for FL350
+  category           String // "light", "medium", "heavy"
+
+  @@index([iata])
+}
