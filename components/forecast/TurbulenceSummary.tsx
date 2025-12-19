@@ -1,4 +1,4 @@
-import { getTurbulenceColor, getTurbulenceDescription } from '@/services/weather/mockTurbulence'
+import { getTurbulenceColor, getTurbulenceDescription } from '@/services/weather/aviationWeather'
 
 interface TurbulenceSummaryProps {
   summary: {
@@ -89,8 +89,9 @@ export function TurbulenceSummary({ summary, route }: TurbulenceSummaryProps) {
             {route.cruiseAltitude.toLocaleString()} ft (FL{Math.round(route.cruiseAltitude / 100)})
           </div>
         </div>
-        <div className="text-xs text-gray-500 max-w-md">
-          💡 This forecast uses simulated turbulence data for demonstration. Production version will use real NOAA/NWS WAFS GRIB2 data.
+        <div className="text-xs text-gray-500 max-w-md flex items-center gap-2">
+          <span className="text-green-500">✓</span>
+          <span>Using real Aviation Weather Center data including SIGMET, AIRMET, and PIREP turbulence reports</span>
         </div>
       </div>
     </div>

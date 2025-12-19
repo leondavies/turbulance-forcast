@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { getTurbulenceColor } from '@/services/weather/mockTurbulence'
+import { getTurbulenceColor } from '@/services/weather/aviationWeather'
 
 interface TurbulenceMapProps {
   origin: { iata: string; lat: number; lon: number; city: string }

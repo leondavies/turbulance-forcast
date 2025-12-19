@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { calculateGreatCircleRoute } from '@/services/route/greatCircle'
-import { generateMockTurbulence } from '@/services/weather/mockTurbulence'
+import { generateTurbulenceForecast } from '@/services/weather/aviationWeather'
 import { prisma } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
@@ -37,8 +37,8 @@ export async function GET(request: NextRequest) {
       50 // 50 km waypoint spacing
     )
 
-    // Generate turbulence forecast
-    const forecast = generateMockTurbulence(route.waypoints)
+    // Generate turbulence forecast using real Aviation Weather Center data
+    const forecast = await generateTurbulenceForecast(route.waypoints)
 
     // Calculate summary statistics
     const maxTurbulence = Math.max(...forecast.map(f => f.turbulence.edr))

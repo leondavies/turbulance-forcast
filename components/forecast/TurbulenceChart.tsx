@@ -1,6 +1,6 @@
 'use client'
 
-import { getTurbulenceColor } from '@/services/weather/mockTurbulence'
+import { getTurbulenceColor } from '@/services/weather/aviationWeather'
 
 interface TurbulenceChartProps {
   forecast: Array<{
