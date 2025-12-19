@@ -5,17 +5,17 @@ export default function About() {
     <div className="bg-gray-50 min-h-[calc(100vh-4rem)]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
-          About Turbli
+          About TurbCast
         </h1>
 
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle as="h2">What is Turbli?</CardTitle>
+              <CardTitle as="h2">What is TurbCast?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 leading-relaxed">
-                Turbli is a turbulence forecast tool designed for curious or nervous flyers.
+                TurbCast is a turbulence forecast tool designed for curious or nervous flyers.
                 It provides detailed turbulence predictions for flights up to 36 hours in advance,
                 using real weather data from NOAA/NWS and other authoritative sources.
               </p>

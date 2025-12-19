@@ -1,6 +1,6 @@
-# Turbli - Flight Turbulence Forecast
+# TurbCast - Flight Turbulence Forecast
 
-A full recreation of Turbli.com - real-time turbulence forecasts for flights using NOAA/NWS weather data.
+Real-time turbulence forecasts for flights using NOAA/NWS weather data.
 
 ## Project Status: Phase 1 Complete ✅
 
@@ -14,7 +14,7 @@ A full recreation of Turbli.com - real-time turbulence forecasts for flights usi
 - ✅ **Design System** UI components (Button, Input, Card, Select, Spinner)
 - ✅ **Header/Footer** layout components
 - ✅ **Home page** with flight search form (mock data)
-- ✅ **About page** explaining how Turbli works
+- ✅ **About page** explaining how TurbCast works
 
 ### What's Next
 
@@ -189,15 +189,15 @@ NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=
 
 ## Contributing
 
-This is a recreation project following the implementation plan in `/Users/leon/.claude/plans/ancient-plotting-umbrella.md`.
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This is an educational recreation project.
+MIT License
 
 ## Acknowledgments
 
-- Original Turbli.com by Ignacio Gallego-Marcos
+- Inspired by Turbli.com by Ignacio Gallego-Marcos
 - NOAA/NWS for weather data
 - AviationStack for flight data
 - Met Office for thunderstorm forecasts

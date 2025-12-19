@@ -18,7 +18,7 @@ export default function Home() {
         <div className="text-center mb-12 animate-fade-in">
           <div className="inline-block text-7xl mb-6 animate-bounce-slow">✈️</div>
           <h1 className="text-6xl md:text-7xl font-extrabold text-white mb-6 drop-shadow-lg">
-            Turbli
+            TurbCast
           </h1>
           <p className="text-2xl md:text-3xl text-blue-100 mb-4 font-medium">
             Real-Time Flight Turbulence Forecast

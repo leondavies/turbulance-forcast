@@ -29,7 +29,7 @@ export async function searchFlights(params: {
 
   const response = await fetch(url.toString(), {
     headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; TurbliApp/1.0)',
+      'User-Agent': 'Mozilla/5.0 (compatible; TurbCast/1.0)',
       'Accept': 'application/json',
     },
     cache: 'no-store', // Disable Next.js caching for now

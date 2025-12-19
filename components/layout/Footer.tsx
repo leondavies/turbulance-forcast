@@ -10,7 +10,7 @@ export function Footer() {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <div className="text-2xl">✈️</div>
-              <span className="text-lg font-bold text-gray-900">Turbli</span>
+              <span className="text-lg font-bold text-gray-900">TurbCast</span>
             </div>
             <p className="text-sm text-gray-600">
               Real-time turbulence forecasts for your flight. Plan your journey with confidence.
@@ -44,7 +44,7 @@ export function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-600">
-          <p>&copy; {currentYear} Turbli. All rights reserved.</p>
+          <p>&copy; {currentYear} TurbCast. All rights reserved.</p>
           <p className="mt-2 text-xs">
             Weather forecasts are for informational purposes only. Always follow official airline guidance.
           </p>

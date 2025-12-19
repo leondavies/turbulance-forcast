@@ -8,7 +8,7 @@ export function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <div className="text-2xl">✈️</div>
-              <span className="text-xl font-bold text-gray-900">Turbli</span>
+              <span className="text-xl font-bold text-gray-900">TurbCast</span>
             </Link>
           </div>
 
