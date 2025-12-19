@@ -29,20 +29,19 @@ export default function Home() {
         </div>
 
         {/* Search Card */}
-        <div className="max-w-4xl mx-auto animate-slide-up">
-          <Card padding="lg" className="shadow-2xl backdrop-blur-sm bg-white/95 border-0">
-            <CardHeader>
-              <CardTitle className="text-3xl text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Search Your Flight
-              </CardTitle>
-              <p className="text-center text-gray-500 mt-2">
-                Enter your flight details to get turbulence predictions
+        <div className="max-w-5xl mx-auto animate-slide-up">
+          <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-12 border border-white/20">
+            <div className="mb-8 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
+                Find Your Flight
+              </h2>
+              <p className="text-gray-600 text-lg">
+                Search 6,000+ airports worldwide for real-time turbulence predictions
               </p>
-            </CardHeader>
-            <CardContent>
-              <FlightSearchForm />
-            </CardContent>
-          </Card>
+            </div>
+
+            <FlightSearchForm />
+          </div>
         </div>
 
         {/* Info Section */}
