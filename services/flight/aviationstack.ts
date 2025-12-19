@@ -1,6 +1,6 @@
 import type { AviationStackResponse, AviationStackFlight, Flight } from './types'
 
-const AVIATIONSTACK_API_URL = 'http://api.aviationstack.com/v1'
+const AVIATIONSTACK_API_URL = 'https://api.aviationstack.com/v1'
 const API_KEY = process.env.AVIATIONSTACK_API_KEY
 
 if (!API_KEY) {
@@ -21,14 +21,18 @@ export async function searchFlights(params: {
   url.searchParams.append('dep_iata', params.depIata)
   url.searchParams.append('arr_iata', params.arrIata)
 
-  if (params.flightDate) {
-    url.searchParams.append('flight_date', params.flightDate)
-  }
+  // NOTE: flight_date parameter requires a paid plan (Basic+)
+  // Free plan only supports real-time flights
+  // params.flightDate is accepted but ignored for now
 
-  console.log('Fetching flights from AviationStack:', url.toString().replace(API_KEY, 'API_KEY_HIDDEN'))
+  console.log('Fetching flights from AviationStack:', params.depIata, '→', params.arrIata)
 
   const response = await fetch(url.toString(), {
-    next: { revalidate: 300 } // Cache for 5 minutes
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; TurbliApp/1.0)',
+      'Accept': 'application/json',
+    },
+    cache: 'no-store', // Disable Next.js caching for now
   })
 
   if (!response.ok) {

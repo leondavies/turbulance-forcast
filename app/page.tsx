@@ -21,10 +21,10 @@ export default function Home() {
             Turbli
           </h1>
           <p className="text-2xl md:text-3xl text-blue-100 mb-4 font-medium">
-            Flight Turbulence Forecast
+            Real-Time Flight Turbulence Forecast
           </p>
           <p className="text-lg text-blue-200 max-w-2xl mx-auto">
-            Real-time turbulence predictions powered by NOAA weather data
+            Live flight tracking with turbulence predictions powered by NOAA weather data
           </p>
         </div>
 
@@ -48,9 +48,9 @@ export default function Home() {
         {/* Info Section */}
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           {[
-            { icon: '📊', title: 'Real Data', desc: 'Powered by NOAA/NWS weather forecasts' },
-            { icon: '⏱️', title: '36-Hour Forecast', desc: 'Advanced predictions for upcoming flights' },
-            { icon: '🎯', title: 'Aircraft-Specific', desc: 'Forecasts adjusted for your aircraft type' }
+            { icon: '✈️', title: 'Real-Time Flights', desc: 'Live flight data from 10,000+ airports worldwide' },
+            { icon: '📊', title: 'Weather Data', desc: 'Powered by NOAA/NWS weather forecasts' },
+            { icon: '🎯', title: 'Route-Specific', desc: 'Turbulence forecasts for your exact flight path' }
           ].map((item, idx) => (
             <div
               key={idx}
