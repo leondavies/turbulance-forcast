@@ -121,30 +121,30 @@ async function transformFlight(asFlightInfo: AviationStackFlight): Promise<Fligh
   const aircraftName = await getAircraftName(asFlightInfo.aircraft?.iata || null)
 
   return {
-    id: `${asFlightInfo.flight.iata}-${asFlightInfo.flight_date}`,
-    flightNumber: asFlightInfo.flight.iata,
+    id: `${asFlightInfo.flight?.iata || asFlightInfo.flight?.number || 'UNKNOWN'}-${asFlightInfo.flight_date}`,
+    flightNumber: asFlightInfo.flight?.iata || asFlightInfo.flight?.number || 'UNKNOWN',
     airline: {
-      name: asFlightInfo.airline.name,
-      iata: asFlightInfo.airline.iata,
-      icao: asFlightInfo.airline.icao,
+      name: asFlightInfo.airline?.name || 'Unknown Airline',
+      iata: asFlightInfo.airline?.iata || '',
+      icao: asFlightInfo.airline?.icao || '',
     },
     origin: {
-      iata: asFlightInfo.departure.iata,
-      icao: asFlightInfo.departure.icao,
-      name: asFlightInfo.departure.airport,
+      iata: asFlightInfo.departure?.iata || '',
+      icao: asFlightInfo.departure?.icao || '',
+      name: asFlightInfo.departure?.airport || 'Unknown Airport',
     },
     destination: {
-      iata: asFlightInfo.arrival.iata,
-      icao: asFlightInfo.arrival.icao,
-      name: asFlightInfo.arrival.airport,
+      iata: asFlightInfo.arrival?.iata || '',
+      icao: asFlightInfo.arrival?.icao || '',
+      name: asFlightInfo.arrival?.airport || 'Unknown Airport',
     },
     departure: {
-      scheduled: new Date(asFlightInfo.departure.scheduled),
-      estimated: new Date(asFlightInfo.departure.estimated || asFlightInfo.departure.scheduled),
+      scheduled: new Date(asFlightInfo.departure?.scheduled || Date.now()),
+      estimated: new Date(asFlightInfo.departure?.estimated || asFlightInfo.departure?.scheduled || Date.now()),
     },
     arrival: {
-      scheduled: new Date(asFlightInfo.arrival.scheduled),
-      estimated: new Date(asFlightInfo.arrival.estimated || asFlightInfo.arrival.scheduled),
+      scheduled: new Date(asFlightInfo.arrival?.scheduled || Date.now()),
+      estimated: new Date(asFlightInfo.arrival?.estimated || asFlightInfo.arrival?.scheduled || Date.now()),
     },
     aircraft: {
       type: aircraftName,
@@ -155,7 +155,7 @@ async function transformFlight(asFlightInfo: AviationStackFlight): Promise<Fligh
   }
 }
 
-function normalizeStatus(status: string): Flight['status'] {
+function normalizeStatus(status?: string | null): Flight['status'] {
   const statusMap: Record<string, Flight['status']> = {
     scheduled: 'scheduled',
     active: 'active',
@@ -165,5 +165,6 @@ function normalizeStatus(status: string): Flight['status'] {
     diverted: 'diverted',
   }
 
+  if (!status || typeof status !== 'string') return 'scheduled'
   return statusMap[status.toLowerCase()] || 'scheduled'
 }
