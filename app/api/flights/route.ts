@@ -18,11 +18,17 @@ export async function GET(request: NextRequest) {
 
     console.log(`Flight search request: ${origin} → ${destination} on ${date || 'today'}`)
 
-    // Get origin airport timezone to determine "today" in local time
-    const originAirport = await prisma.airport.findUnique({
-      where: { iata: origin.toUpperCase() },
-      select: { timezone: true }
-    })
+    // Get origin and destination airport timezones
+    const [originAirport, destinationAirport] = await Promise.all([
+      prisma.airport.findUnique({
+        where: { iata: origin.toUpperCase() },
+        select: { timezone: true }
+      }),
+      prisma.airport.findUnique({
+        where: { iata: destination.toUpperCase() },
+        select: { timezone: true }
+      })
+    ])
 
     const flights = await searchFlights({
       depIata: origin.toUpperCase(),
@@ -69,8 +75,10 @@ export async function GET(request: NextRequest) {
     const flightMap = new Map<string, typeof filteredFlights[0]>()
 
     for (const flight of filteredFlights) {
-      // Only keep scheduled or active flights (skip landed, cancelled, etc)
-      if (flight.status !== 'scheduled' && flight.status !== 'active') {
+      // Show all of today's flights, regardless of status (scheduled, active, landed)
+      // Users want to see what turbulence was/will be for any flight today
+      // Only skip cancelled/incident/diverted flights
+      if (flight.status === 'cancelled' || flight.status === 'incident' || flight.status === 'diverted') {
         continue
       }
 
@@ -92,12 +100,25 @@ export async function GET(request: NextRequest) {
       new Date(a.departure.scheduled).getTime() - new Date(b.departure.scheduled).getTime()
     )
 
+    // Add timezone information to each flight
+    const flightsWithTimezone = deduplicatedFlights.map(flight => ({
+      ...flight,
+      origin: {
+        ...flight.origin,
+        timezone: originAirport?.timezone || 'UTC'
+      },
+      destination: {
+        ...flight.destination,
+        timezone: destinationAirport?.timezone || 'UTC'
+      }
+    }))
+
     console.log(`Deduplicated from ${filteredFlights.length} to ${deduplicatedFlights.length} flights`)
 
     return NextResponse.json({
       success: true,
-      count: deduplicatedFlights.length,
-      flights: deduplicatedFlights,
+      count: flightsWithTimezone.length,
+      flights: flightsWithTimezone,
     })
   } catch (error) {
     console.error('Flight search error:', error)

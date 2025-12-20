@@ -53,11 +53,13 @@ export function ResultsContent() {
     fetchFlights()
   }, [origin, destination, date])
 
-  const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+  const formatTime = (date: Date, timezone?: string) => {
+    // AviationStack returns times in local timezone but formats them as UTC
+    // So we extract the time components directly without timezone conversion
+    const d = new Date(date)
+    const hours = d.getUTCHours().toString().padStart(2, '0')
+    const minutes = d.getUTCMinutes().toString().padStart(2, '0')
+    return `${hours}:${minutes}`
   }
 
   const formatDuration = (dep: Date, arr: Date) => {
@@ -202,7 +204,7 @@ export function ResultsContent() {
                         <div className="flex items-center gap-8">
                           <div>
                             <div className="text-3xl font-bold text-gray-900">
-                              {formatTime(flight.departure.scheduled)}
+                              {formatTime(flight.departure.scheduled, flight.origin.timezone)}
                             </div>
                             <div className="text-sm text-gray-600">{origin}</div>
                           </div>
@@ -220,7 +222,7 @@ export function ResultsContent() {
 
                           <div>
                             <div className="text-3xl font-bold text-gray-900">
-                              {formatTime(flight.arrival.scheduled)}
+                              {formatTime(flight.arrival.scheduled, flight.destination.timezone)}
                             </div>
                             <div className="text-sm text-gray-600">{destination}</div>
                           </div>

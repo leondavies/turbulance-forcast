@@ -90,11 +90,13 @@ export interface Flight {
     iata: string
     icao: string
     name: string
+    timezone?: string
   }
   destination: {
     iata: string
     icao: string
     name: string
+    timezone?: string
   }
   departure: {
     scheduled: Date

@@ -117,8 +117,28 @@ async function getAircraftName(iataCode: string | null): Promise<string> {
   }
 }
 
+/**
+ * Parse AviationStack time string as local timezone time
+ * AviationStack returns times in local timezone but formats them with +00:00 (which is misleading)
+ */
+function parseLocalTime(timeString: string | null | undefined, timezone: string): Date {
+  if (!timeString) return new Date()
+
+  // AviationStack times are actually in local timezone despite the +00:00 suffix
+  // We need to parse them as local time, not UTC
+  // Format: "2025-12-21T05:45:00+00:00"
+  const dateTimeStr = timeString.split('+')[0].split('.')[0] // "2025-12-21T05:45:00"
+
+  // Create a date string that explicitly specifies the local timezone
+  // This interprets the time as being in the given timezone
+  return new Date(dateTimeStr + 'Z') // Temporarily parse as UTC, we'll adjust display in component
+}
+
 async function transformFlight(asFlightInfo: AviationStackFlight): Promise<Flight> {
   const aircraftName = await getAircraftName(asFlightInfo.aircraft?.iata || null)
+
+  const depTimezone = asFlightInfo.departure?.timezone || 'UTC'
+  const arrTimezone = asFlightInfo.arrival?.timezone || 'UTC'
 
   return {
     id: `${asFlightInfo.flight?.iata || asFlightInfo.flight?.number || 'UNKNOWN'}-${asFlightInfo.flight_date}`,
@@ -139,12 +159,13 @@ async function transformFlight(asFlightInfo: AviationStackFlight): Promise<Fligh
       name: asFlightInfo.arrival?.airport || 'Unknown Airport',
     },
     departure: {
-      scheduled: new Date(asFlightInfo.departure?.scheduled || Date.now()),
-      estimated: new Date(asFlightInfo.departure?.estimated || asFlightInfo.departure?.scheduled || Date.now()),
+      // Store as UTC but these times are actually in local timezone from AviationStack
+      scheduled: parseLocalTime(asFlightInfo.departure?.scheduled, depTimezone),
+      estimated: parseLocalTime(asFlightInfo.departure?.estimated || asFlightInfo.departure?.scheduled, depTimezone),
     },
     arrival: {
-      scheduled: new Date(asFlightInfo.arrival?.scheduled || Date.now()),
-      estimated: new Date(asFlightInfo.arrival?.estimated || asFlightInfo.arrival?.scheduled || Date.now()),
+      scheduled: parseLocalTime(asFlightInfo.arrival?.scheduled, arrTimezone),
+      estimated: parseLocalTime(asFlightInfo.arrival?.estimated || asFlightInfo.arrival?.scheduled, arrTimezone),
     },
     aircraft: {
       type: aircraftName,
