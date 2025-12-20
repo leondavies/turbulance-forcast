@@ -37,35 +37,24 @@ export async function GET(request: NextRequest) {
     })
 
     // Filter to show TODAY's flights in the AIRPORT's local timezone
+    // AviationStack returns times in local timezone but with +00:00 suffix (misleading!)
+    // So we can just extract the date portion and compare directly
     const timezone = originAirport?.timezone || 'UTC'
-    const now = new Date()
 
-    // Get today's date in the airport's timezone
-    const localDateString = new Date().toLocaleString('en-US', {
+    // Get today's date in the airport's local timezone (format: YYYY-MM-DD)
+    const todayInLocalTZ = new Date().toLocaleDateString('en-CA', {
       timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    })
-    const [month, day, year] = localDateString.split(/[\/,\s]+/)
-    const startOfTodayLocal = new Date(`${year}-${month}-${day}T00:00:00`)
-    const endOfTodayLocal = new Date(`${year}-${month}-${day}T23:59:59`)
+    }) // en-CA gives YYYY-MM-DD format
 
-    console.log(`Filtering for today in ${timezone}: ${startOfTodayLocal.toISOString()} to ${endOfTodayLocal.toISOString()}`)
+    console.log(`Filtering for today in ${timezone}: ${todayInLocalTZ}`)
 
     const filteredFlights = flights.filter(flight => {
-      const departureDate = new Date(flight.departure.scheduled)
-      // Convert departure to airport's local timezone
-      const departureLocalString = departureDate.toLocaleString('en-US', {
-        timeZone: timezone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      })
-      const [depMonth, depDay, depYear] = departureLocalString.split(/[\/,\s]+/)
+      // Extract date from AviationStack time (which is in local TZ despite +00:00)
+      // Format: "2025-12-21T05:45:00.000Z" -> "2025-12-21"
+      const departureDate = new Date(flight.departure.scheduled).toISOString().split('T')[0]
 
-      // Check if departure is on the same local day
-      return depYear === year && depMonth === month && depDay === day
+      // Check if departure is on today's date
+      return departureDate === todayInLocalTZ
     })
 
     console.log(`Filtered ${flights.length} flights to ${filteredFlights.length} for TODAY in ${timezone}`)
@@ -75,10 +64,8 @@ export async function GET(request: NextRequest) {
     const flightMap = new Map<string, typeof filteredFlights[0]>()
 
     for (const flight of filteredFlights) {
-      // Show all of today's flights, regardless of status (scheduled, active, landed)
-      // Users want to see what turbulence was/will be for any flight today
-      // Only skip cancelled/incident/diverted flights
-      if (flight.status === 'cancelled' || flight.status === 'incident' || flight.status === 'diverted') {
+      // Only keep scheduled or active flights (skip landed, cancelled, etc)
+      if (flight.status !== 'scheduled' && flight.status !== 'active') {
         continue
       }
 

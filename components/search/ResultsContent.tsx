@@ -57,9 +57,14 @@ export function ResultsContent() {
     // AviationStack returns times in local timezone but formats them as UTC
     // So we extract the time components directly without timezone conversion
     const d = new Date(date)
-    const hours = d.getUTCHours().toString().padStart(2, '0')
+    const hours24 = d.getUTCHours()
     const minutes = d.getUTCMinutes().toString().padStart(2, '0')
-    return `${hours}:${minutes}`
+
+    // Convert to 12-hour format with AM/PM
+    const period = hours24 >= 12 ? 'PM' : 'AM'
+    const hours12 = hours24 % 12 || 12 // Convert 0 to 12 for midnight
+
+    return `${hours12}:${minutes} ${period}`
   }
 
   const formatDuration = (dep: Date, arr: Date) => {
