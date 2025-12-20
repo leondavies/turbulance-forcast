@@ -154,7 +154,17 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
 AVIATIONSTACK_API_KEY=
 MAPBOX_ACCESS_TOKEN=
 NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=
+ 
+# Analytics
+# Set this in .env.local to enable GTM in production
+NEXT_PUBLIC_GTM_ID=
 ```
+
+## Analytics (Google Tag Manager)
+
+- Add your GTM container ID to `.env.local` as `NEXT_PUBLIC_GTM_ID=GTM-XXXXXXX`.
+- GTM loads only in production (`NODE_ENV=production`) and if the ID is present.
+- The integration injects both the `<script>` and `<noscript>` snippets automatically.
 
 ## Key Features (Planned)
 
