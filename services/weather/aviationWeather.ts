@@ -44,7 +44,7 @@ export interface ForecastResult {
  */
 export async function generateTurbulenceForecast(
   waypoints: RoutePoint[],
-  opts?: { departureTime?: Date; aircraftIata?: string }
+  opts?: { departureTime?: Date; aircraftIata?: string; durationMinutes?: number }
 ): Promise<ForecastResult> {
   try {
     // Fetch turbulence data from Aviation Weather Center
@@ -130,17 +130,26 @@ async function fetchAviationWeatherData(waypoints: RoutePoint[]): Promise<Aviati
   try {
     // Fetch SIGMETs (Significant Meteorological Information) for turbulence
     const sigmetUrl = `${baseUrl}/sigmet?bbox=${minLon},${minLat},${maxLon},${maxLat}&format=json`
-    const sigmetResponse = await fetch(sigmetUrl, { next: { revalidate: 1800 } }) // Cache for 30 min
+    const sigmetResponse = await fetch(sigmetUrl, {
+      headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
+      next: { revalidate: 1800 }
+    }) // Cache for 30 min
     const sigmets = sigmetResponse.ok ? await sigmetResponse.json() : []
 
     // Fetch AIRMETs (Airmen's Meteorological Information) for turbulence
     const airmetUrl = `${baseUrl}/airmet?bbox=${minLon},${minLat},${maxLon},${maxLat}&format=json`
-    const airmetResponse = await fetch(airmetUrl, { next: { revalidate: 1800 } })
+    const airmetResponse = await fetch(airmetUrl, {
+      headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
+      next: { revalidate: 1800 }
+    })
     const airmets = airmetResponse.ok ? await airmetResponse.json() : []
 
     // Fetch PIREPs (Pilot Reports) for actual turbulence observations
     const pirepUrl = `${baseUrl}/pirep?bbox=${minLon},${minLat},${maxLon},${maxLat}&format=json`
-    const pirepResponse = await fetch(pirepUrl, { next: { revalidate: 600 } }) // Cache for 10 min
+    const pirepResponse = await fetch(pirepUrl, {
+      headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
+      next: { revalidate: 600 }
+    }) // Cache for 10 min
     const pireps = pirepResponse.ok ? await pirepResponse.json() : []
 
     return { sigmets, airmets, pireps }
@@ -155,7 +164,7 @@ function calculateTurbulenceForPoint(
   weatherData: AviationWeatherData,
   index: number,
   total: number,
-  opts?: { departureTime?: Date; aircraftIata?: string }
+  opts?: { departureTime?: Date; aircraftIata?: string; durationMinutes?: number }
 ): TurbulenceData {
   let baseEDR = 0.05 // Start with smooth conditions
 
@@ -201,10 +210,14 @@ function calculateTurbulenceForPoint(
 
   // Time-of-day diurnal adjustment (afternoon convection more likely)
   if (opts?.departureTime) {
-    const localHour = opts.departureTime.getUTCHours() // approximate; real impl should convert to local
+    // Approximate local hour at this waypoint by adding progress-based minutes
+    // along the route to the departure time.
+    const minutesProgress = (opts.durationMinutes || 0) * (index / Math.max(1, total - 1))
+    const waypointTime = new Date(opts.departureTime.getTime() + minutesProgress * 60 * 1000)
+    const localHour = waypointTime.getUTCHours() // TODO: convert to local with tz data if available
     const diurnal =
       localHour >= 12 && localHour <= 20
-        ? 0.04 + seededRandom(point.lat, point.lon, index, 999) * 0.04
+        ? 0.07 + seededRandom(point.lat, point.lon, index, 999) * 0.06
         : 0
     baseEDR = Math.max(baseEDR, 0.05 + diurnal)
   }

@@ -71,6 +71,7 @@ export async function GET(request: NextRequest) {
     const forecastResult = await generateTurbulenceForecast(route.waypoints, {
       departureTime: departureDate || undefined,
       aircraftIata: aircraftIata || undefined,
+      durationMinutes: route.estimatedDuration,
     })
     const forecast = forecastResult.segments
 
