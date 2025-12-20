@@ -65,12 +65,12 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
   const durationHours = Math.ceil(route.estimatedDuration / 60)
 
   return (
-    <div className="relative bg-white rounded-2xl p-6">
+    <div className="relative bg-white rounded-2xl p-3 sm:p-6">
       {/* Warning banner */}
       <div className="mb-6 flex items-center gap-3 p-4 bg-orange-50 border-l-4 border-orange-400 rounded-lg">
         <div className="text-2xl">⚠️</div>
         <div>
-          <div className="font-semibold text-orange-900">
+          <div className="font-semibold text-orange-900 text-sm sm:text-base">
             {forecast.some(f => f.turbulence.level === 'moderate' || f.turbulence.level === 'severe')
               ? 'Episodes of moderate turbulence, bumpy flight ahead'
               : 'Smooth flight conditions expected'}
@@ -78,9 +78,11 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
         </div>
       </div>
 
-      <div className="flex gap-6">
-        {/* Turbulence level sidebar */}
-        <div className="flex flex-col" style={{ width: '120px', height: `${chartHeight}px`, marginTop: `${padding.top}px` }}>
+      {/* Horizontal scroll container for mobile */}
+      <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+        <div className="min-w-[600px] flex gap-3 sm:gap-6">
+          {/* Turbulence level sidebar */}
+          <div className="flex flex-col flex-shrink-0" style={{ width: '80px', height: `${chartHeight}px`, marginTop: `${padding.top}px` }}>
           {levels.map((lvl, idx) => {
             // Calculate height based on EDR range
             const rangeSize = lvl.max - lvl.min
@@ -97,7 +99,7 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
                 }}
               >
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-semibold text-gray-800 transform -rotate-90 whitespace-nowrap">
+                <span className="text-xs sm:text-sm font-semibold text-gray-800 transform -rotate-90 whitespace-nowrap">
                   {lvl.label}
                 </span>
               </div>
@@ -276,23 +278,24 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
             </g>
           </svg>
         </div>
+        </div>
       </div>
 
       {/* Legend */}
       <div className="mt-8 pt-6 border-t border-gray-200 space-y-4">
         <div className="flex items-start gap-3">
-          <svg width="60" height="3" className="mt-2">
+          <svg width="60" height="3" className="mt-2 flex-shrink-0">
             <line x1="0" y1="1.5" x2="60" y2="1.5" stroke="#3b82f6" strokeWidth="3" />
           </svg>
-          <div className="text-sm text-gray-700">
+          <div className="text-xs sm:text-sm text-gray-700">
             Turbulence along the expected route.
           </div>
         </div>
         <div className="flex items-start gap-3">
-          <svg width="60" height="10" className="mt-1">
+          <svg width="60" height="10" className="mt-1 flex-shrink-0">
             <rect x="0" y="0" width="60" height="10" fill="#d1d5db" opacity="0.5" />
           </svg>
-          <div className="text-sm text-gray-700">
+          <div className="text-xs sm:text-sm text-gray-700">
             Turbulence along other routes that your pilot might deviate to, ranging between ±2000 ft (±600 m) from the expected altitude, and ±40 miles (±65 km) from the expected latitude and longitude points.
           </div>
         </div>
