@@ -36,27 +36,38 @@ export function TurbulenceMap({ origin, destination, forecast }: TurbulenceMapPr
   else if (maxDiff < 80) zoom = 2
   else zoom = 1
 
-  // Create GeoJSON for route line
-  const routeGeoJSON = {
-    type: 'FeatureCollection' as const,
-    features: [{
+  // Create separate GeoJSON features for each segment with color based on turbulence
+  const segmentFeatures = forecast.slice(0, -1).map((point, i) => {
+    const nextPoint = forecast[i + 1]
+    return {
       type: 'Feature' as const,
-      properties: {},
+      properties: {
+        color: getTurbulenceColor(point.turbulence.level as any),
+        level: point.turbulence.level
+      },
       geometry: {
         type: 'LineString' as const,
-        coordinates: forecast.map(f => [f.lon, f.lat])
+        coordinates: [
+          [point.lon, point.lat],
+          [nextPoint.lon, nextPoint.lat]
+        ]
       }
-    }]
+    }
+  })
+
+  const routeGeoJSON = {
+    type: 'FeatureCollection' as const,
+    features: segmentFeatures
   }
 
-  // Layer style for route
+  // Layer style for route with color from properties
   const routeLayer = {
     id: 'route',
     type: 'line' as const,
     paint: {
-      'line-color': '#3b82f6',
+      'line-color': ['get', 'color'] as any,
       'line-width': 4,
-      'line-opacity': 0.8
+      'line-opacity': 0.9
     }
   }
 
