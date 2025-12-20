@@ -80,7 +80,7 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
 
       <div className="flex gap-6">
         {/* Turbulence level sidebar */}
-        <div className="flex flex-col-reverse" style={{ width: '120px', height: `${height}px`, marginTop: `${padding.top}px` }}>
+        <div className="flex flex-col" style={{ width: '120px', height: `${chartHeight}px`, marginTop: `${padding.top}px` }}>
           {levels.map((lvl, idx) => {
             // Calculate height based on EDR range
             const rangeSize = lvl.max - lvl.min
