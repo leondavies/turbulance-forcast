@@ -1,4 +1,5 @@
 import type { AviationStackResponse, AviationStackFlight, Flight } from './types'
+import { prisma } from '@/lib/db'
 
 const AVIATIONSTACK_API_URL = 'https://api.aviationstack.com/v1'
 const API_KEY = process.env.AVIATIONSTACK_API_KEY
@@ -6,6 +7,9 @@ const API_KEY = process.env.AVIATIONSTACK_API_KEY
 if (!API_KEY) {
   console.warn('AVIATIONSTACK_API_KEY is not set')
 }
+
+// Cache for aircraft lookups to avoid repeated DB queries
+const aircraftCache = new Map<string, string>()
 
 export async function searchFlights(params: {
   depIata: string
@@ -45,11 +49,40 @@ export async function searchFlights(params: {
 
   console.log(`Found ${data.data.length} flights from AviationStack`)
 
-  // Transform AviationStack data to our Flight type
-  return data.data.map(transformFlight)
+  // Transform AviationStack data to our Flight type (with async aircraft lookup)
+  const transformedFlights = await Promise.all(
+    data.data.map(flight => transformFlight(flight))
+  )
+
+  return transformedFlights
 }
 
-function transformFlight(asFlightInfo: AviationStackFlight): Flight {
+async function getAircraftName(iataCode: string | null): Promise<string> {
+  if (!iataCode) return 'Unknown'
+
+  // Check cache first
+  if (aircraftCache.has(iataCode)) {
+    return aircraftCache.get(iataCode)!
+  }
+
+  try {
+    const aircraft = await prisma.aircraft.findUnique({
+      where: { iata: iataCode },
+      select: { name: true }
+    })
+
+    const name = aircraft?.name || iataCode // Fallback to IATA code if not found
+    aircraftCache.set(iataCode, name)
+    return name
+  } catch (error) {
+    console.error(`Failed to lookup aircraft ${iataCode}:`, error)
+    return iataCode
+  }
+}
+
+async function transformFlight(asFlightInfo: AviationStackFlight): Promise<Flight> {
+  const aircraftName = await getAircraftName(asFlightInfo.aircraft?.iata || null)
+
   return {
     id: `${asFlightInfo.flight.iata}-${asFlightInfo.flight_date}`,
     flightNumber: asFlightInfo.flight.iata,
@@ -77,7 +110,7 @@ function transformFlight(asFlightInfo: AviationStackFlight): Flight {
       estimated: new Date(asFlightInfo.arrival.estimated || asFlightInfo.arrival.scheduled),
     },
     aircraft: {
-      type: asFlightInfo.aircraft?.iata || 'Unknown',
+      type: aircraftName,
       iata: asFlightInfo.aircraft?.iata || null,
       registration: asFlightInfo.aircraft?.registration || null,
     },
