@@ -28,6 +28,7 @@ model Airport {
 model Aircraft {
   id                 String  @id @default(cuid())
   iata               String  @unique
+  icao               String? @unique
   name               String
   manufacturer       String
   maxTakeoffWeight   Int // kg
@@ -38,6 +39,19 @@ model Aircraft {
   category           String // "light", "medium", "heavy"
 
   @@index([iata])
+  @@index([icao])
+}
+
+model Airline {
+  id           String @id @default(cuid())
+  iata         String @unique
+  icao         String @unique
+  name         String
+  country      String
+  callsign     String?
+
+  @@index([iata])
+  @@index([icao])
 }
 
 model ForecastCache {

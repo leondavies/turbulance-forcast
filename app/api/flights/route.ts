@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { searchFlights } from '@/services/flight/aviationstack'
+import { searchFlights } from '@/services/flight/airlabs'
 import { prisma } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
