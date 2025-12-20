@@ -164,11 +164,11 @@ export function ResultsContent() {
               </p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {flights.map((flight) => (
                 <Card
                   key={flight.id}
-                  className="hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+                  className="hover:shadow-lg hover:border-blue-300 transition-all duration-200 cursor-pointer border-2 border-transparent"
                   onClick={() => {
                     const params = new URLSearchParams({
                       origin: flight.origin.iata,
@@ -180,86 +180,58 @@ export function ResultsContent() {
                     router.push(`/forecast?${params.toString()}`)
                   }}
                 >
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      {/* Flight Info */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-4">
-                          <div>
-                            <div className="text-sm text-gray-500">Flight</div>
-                            <div className="text-xl font-bold text-gray-900">
-                              {flight.flightNumber}
-                            </div>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between gap-4">
+                      {/* Left: Flight Number & Airline */}
+                      <div className="flex flex-col min-w-[120px]">
+                        <div className="text-lg font-bold text-gray-900">
+                          {flight.flightNumber}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {flight.airline.name}
+                        </div>
+                      </div>
+
+                      {/* Center: Times and Duration */}
+                      <div className="flex-1 flex items-center justify-center gap-4 sm:gap-6">
+                        {/* Departure */}
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-gray-900">
+                            {formatTime(flight.departure.scheduled, flight.origin.timezone)}
                           </div>
-                          <div>
-                            <div className="text-sm text-gray-500">Airline</div>
-                            <div className="text-lg font-semibold text-gray-800">
-                              {flight.airline.name}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-sm text-gray-500">Aircraft</div>
-                            <div className="text-lg text-gray-800">
-                              {flight.aircraft.type || 'N/A'}
-                            </div>
+                          <div className="text-xs text-gray-500 uppercase font-medium">
+                            {origin}
                           </div>
                         </div>
 
-                        {/* Flight Times */}
-                        <div className="flex items-center gap-8">
-                          <div>
-                            <div className="text-3xl font-bold text-gray-900">
-                              {formatTime(flight.departure.scheduled, flight.origin.timezone)}
-                            </div>
-                            <div className="text-sm text-gray-600">{origin}</div>
+                        {/* Arrow & Duration */}
+                        <div className="flex flex-col items-center justify-center px-2">
+                          <div className="text-gray-400 text-sm mb-1">✈</div>
+                          <div className="text-xs text-gray-500 whitespace-nowrap">
+                            {formatDuration(flight.departure.scheduled, flight.arrival.scheduled)}
                           </div>
+                        </div>
 
-                          <div className="flex-1 flex items-center">
-                            <div className="flex-1 border-t-2 border-gray-300 relative">
-                              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2">
-                                <div className="text-2xl">✈️</div>
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-500 ml-4">
-                              {formatDuration(flight.departure.scheduled, flight.arrival.scheduled)}
-                            </div>
+                        {/* Arrival */}
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-gray-900">
+                            {formatTime(flight.arrival.scheduled, flight.destination.timezone)}
                           </div>
-
-                          <div>
-                            <div className="text-3xl font-bold text-gray-900">
-                              {formatTime(flight.arrival.scheduled, flight.destination.timezone)}
-                            </div>
-                            <div className="text-sm text-gray-600">{destination}</div>
+                          <div className="text-xs text-gray-500 uppercase font-medium">
+                            {destination}
                           </div>
                         </div>
                       </div>
 
-                      {/* Status Badge */}
-                      <div className="ml-6">
-                        <Badge
-                          variant={
-                            flight.status === 'scheduled' ? 'default' :
-                            flight.status === 'active' ? 'default' :
-                            flight.status === 'landed' ? 'secondary' :
-                            'destructive'
-                          }
-                          className={
-                            flight.status === 'scheduled' ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' :
-                            flight.status === 'active' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
-                            ''
-                          }
-                        >
-                          {flight.status.charAt(0).toUpperCase() + flight.status.slice(1)}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    {/* Click Hint */}
-                    <div className="mt-4 text-center">
-                      <div className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 px-4 py-2 rounded-full">
-                        <span>✈️</span>
-                        Click to view turbulence forecast
-                        <span>→</span>
+                      {/* Right: View Forecast Button */}
+                      <div className="flex items-center">
+                        <div className="hidden sm:flex items-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
+                          View Forecast
+                          <span>→</span>
+                        </div>
+                        <div className="sm:hidden flex items-center justify-center w-10 h-10 text-blue-600 bg-blue-50 rounded-lg">
+                          <span>→</span>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
