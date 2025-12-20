@@ -23,20 +23,36 @@ export async function GET(request: NextRequest) {
       flightDate: date || undefined,
     })
 
-    // Filter to only show flights departing today or tomorrow
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const tomorrow = new Date(today)
-    tomorrow.setDate(tomorrow.getDate() + 1)
-    const dayAfterTomorrow = new Date(tomorrow)
-    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
+    // Filter to only show flights for the requested date
+    let filteredFlights = flights
 
-    const filteredFlights = flights.filter(flight => {
-      const departureDate = new Date(flight.departure.scheduled)
-      return departureDate >= today && departureDate < dayAfterTomorrow
-    })
+    if (date) {
+      // Parse the requested date
+      const requestedDate = new Date(date)
+      const startOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate())
+      const endOfDay = new Date(startOfDay)
+      endOfDay.setDate(endOfDay.getDate() + 1)
 
-    console.log(`Filtered ${flights.length} flights to ${filteredFlights.length} (today/tomorrow only)`)
+      filteredFlights = flights.filter(flight => {
+        const departureDate = new Date(flight.departure.scheduled)
+        return departureDate >= startOfDay && departureDate < endOfDay
+      })
+
+      console.log(`Filtered ${flights.length} flights to ${filteredFlights.length} for ${date}`)
+    } else {
+      // If no date provided, show today and tomorrow
+      const now = new Date()
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const dayAfterTomorrow = new Date(today)
+      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2)
+
+      filteredFlights = flights.filter(flight => {
+        const departureDate = new Date(flight.departure.scheduled)
+        return departureDate >= today && departureDate < dayAfterTomorrow
+      })
+
+      console.log(`Filtered ${flights.length} flights to ${filteredFlights.length} (today/tomorrow)`)
+    }
 
     return NextResponse.json({
       success: true,

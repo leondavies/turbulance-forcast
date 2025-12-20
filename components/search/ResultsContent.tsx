@@ -121,17 +121,49 @@ export function ResultsContent() {
             {origin} → {destination}
           </h1>
           <p className="text-gray-600">
-            {date ? new Date(date).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            }) : new Date().toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            }) + ' (Real-time flights)'}
+            {(() => {
+              if (!date) {
+                return new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                }) + ' (Real-time flights)'
+              }
+
+              const selectedDate = new Date(date)
+              const today = new Date()
+              const tomorrow = new Date(today)
+              tomorrow.setDate(tomorrow.getDate() + 1)
+
+              // Check if date is today
+              if (selectedDate.toDateString() === today.toDateString()) {
+                return 'Today - ' + selectedDate.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              }
+
+              // Check if date is tomorrow
+              if (selectedDate.toDateString() === tomorrow.toDateString()) {
+                return 'Tomorrow - ' + selectedDate.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              }
+
+              // Otherwise show full date
+              return selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })
+            })()}
           </p>
         </div>
 
