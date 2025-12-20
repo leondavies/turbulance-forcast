@@ -1,9 +1,9 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 
 export default function About() {
   return (
     <div className="bg-gray-50 min-h-[calc(100vh-4rem)]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="container max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h1 className="text-4xl font-bold text-gray-900 mb-8 text-center">
           About TurbCast
         </h1>
@@ -11,7 +11,7 @@ export default function About() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle as="h2">What is TurbCast?</CardTitle>
+              <CardTitle className="text-2xl">What is TurbCast?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-700 leading-relaxed">
@@ -24,7 +24,7 @@ export default function About() {
 
           <Card>
             <CardHeader>
-              <CardTitle as="h2">How It Works</CardTitle>
+              <CardTitle className="text-2xl">How It Works</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4 text-gray-700">
@@ -50,7 +50,7 @@ export default function About() {
 
           <Card>
             <CardHeader>
-              <CardTitle as="h2">Data Sources</CardTitle>
+              <CardTitle className="text-2xl">Data Sources</CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="space-y-3 text-gray-700">
@@ -72,7 +72,7 @@ export default function About() {
 
           <Card>
             <CardHeader>
-              <CardTitle as="h2">Understanding Turbulence Levels</CardTitle>
+              <CardTitle className="text-2xl">Understanding Turbulence Levels</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">

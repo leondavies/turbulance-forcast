@@ -1,4 +1,6 @@
 import { getTurbulenceColor, getTurbulenceDescription } from '@/services/weather/aviationWeather'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Separator } from '@/components/ui/separator'
 
 interface TurbulenceSummaryProps {
   summary: {
@@ -17,8 +19,11 @@ export function TurbulenceSummary({ summary, route }: TurbulenceSummaryProps) {
   const description = getTurbulenceDescription(summary.maxTurbulenceLevel as any)
 
   return (
-    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6 md:p-8 border border-white/20">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Turbulence Forecast Summary</h2>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-2xl">Turbulence Forecast Summary</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Overall Condition */}
@@ -52,8 +57,10 @@ export function TurbulenceSummary({ summary, route }: TurbulenceSummaryProps) {
         </div>
       </div>
 
+      <Separator />
+
       {/* Breakdown */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
+      <div>
         <div className="text-sm font-semibold text-gray-700 mb-3">Route Breakdown</div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
@@ -81,8 +88,10 @@ export function TurbulenceSummary({ summary, route }: TurbulenceSummaryProps) {
         </div>
       </div>
 
+      <Separator />
+
       {/* Flight Info */}
-      <div className="mt-6 pt-6 border-t border-gray-200 flex items-center justify-between flex-wrap gap-4">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <div className="text-xs text-gray-500">Cruise Altitude</div>
           <div className="text-lg font-semibold text-gray-900">
@@ -94,6 +103,7 @@ export function TurbulenceSummary({ summary, route }: TurbulenceSummaryProps) {
           <span>Using real Aviation Weather Center data including SIGMET, AIRMET, and PIREP turbulence reports</span>
         </div>
       </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button, Autocomplete } from '@/components/ui'
+import { Button } from '@/components/ui/Button'
+import { Autocomplete } from '@/components/ui'
 import type { FlightSearchParams } from '@/types'
 
 export function FlightSearchForm() {
@@ -164,11 +165,9 @@ export function FlightSearchForm() {
       <div className="flex justify-center pt-4">
         <Button
           type="submit"
-          variant="primary"
           size="lg"
-          isLoading={isLoading}
-          disabled={!formData.origin || !formData.destination}
-          className="min-w-[320px] text-xl py-5 rounded-2xl shadow-2xl
+          disabled={!formData.origin || !formData.destination || isLoading}
+          className="min-w-[320px] text-xl py-6 rounded-2xl shadow-2xl
                      bg-gradient-to-r from-blue-600 to-purple-600
                      hover:from-blue-700 hover:to-purple-700
                      transform hover:scale-105 transition-all duration-200

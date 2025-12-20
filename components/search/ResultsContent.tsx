@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Card, CardContent, Loading, Button } from '@/components/ui'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Badge } from '@/components/ui/badge'
 import type { Flight } from '@/services/flight/types'
 
 export function ResultsContent() {
@@ -66,16 +69,27 @@ export function ResultsContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center">
-        <Loading text="Searching for flights..." size="lg" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+              <p className="text-lg font-medium text-gray-700">Searching for flights...</p>
+              <div className="w-full space-y-2 mt-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-8">
-        <div className="max-w-2xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 sm:p-6 lg:p-8">
+        <div className="container max-w-2xl mx-auto">
           <Card>
             <CardContent className="text-center py-12">
               <div className="text-6xl mb-4">⚠️</div>
@@ -92,8 +106,8 @@ export function ResultsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12">
+      <div className="container max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <Button
@@ -210,19 +224,21 @@ export function ResultsContent() {
 
                       {/* Status Badge */}
                       <div className="ml-6">
-                        <span
-                          className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                            flight.status === 'scheduled'
-                              ? 'bg-blue-100 text-blue-800'
-                              : flight.status === 'active'
-                              ? 'bg-green-100 text-green-800'
-                              : flight.status === 'landed'
-                              ? 'bg-gray-100 text-gray-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
+                        <Badge
+                          variant={
+                            flight.status === 'scheduled' ? 'default' :
+                            flight.status === 'active' ? 'default' :
+                            flight.status === 'landed' ? 'secondary' :
+                            'destructive'
+                          }
+                          className={
+                            flight.status === 'scheduled' ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' :
+                            flight.status === 'active' ? 'bg-green-100 text-green-800 hover:bg-green-200' :
+                            ''
+                          }
                         >
                           {flight.status.charAt(0).toUpperCase() + flight.status.slice(1)}
-                        </span>
+                        </Badge>
                       </div>
                     </div>
 

@@ -1,4 +1,5 @@
 import { getTurbulenceColor } from '@/services/weather/aviationWeather'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 
 interface RouteSegmentsProps {
   forecast: Array<{
@@ -67,11 +68,13 @@ export function RouteSegments({ forecast, origin, destination }: RouteSegmentsPr
   })
 
   return (
-    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-xl p-6 md:p-8 border border-white/20">
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">Route Segments</h2>
-      <p className="text-gray-600 mb-6">Detailed turbulence forecast by flight segment</p>
-
-      <div className="space-y-3">
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-2xl">Route Segments</CardTitle>
+        <CardDescription>Detailed turbulence forecast by flight segment</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
         {segments.map((segment, index) => {
           const color = getTurbulenceColor(segment.level as any)
 
@@ -132,7 +135,8 @@ export function RouteSegments({ forecast, origin, destination }: RouteSegmentsPr
             </div>
           )
         })}
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
