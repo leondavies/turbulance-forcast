@@ -1,8 +1,12 @@
 import type { AviationStackResponse, AviationStackFlight, Flight } from './types'
 import { prisma } from '@/lib/db'
 
-const AVIATIONSTACK_API_URL = 'https://api.aviationstack.com/v1'
+// Default to HTTP to support free AviationStack plans which do not allow HTTPS.
+// Allow override via env if you are on a paid plan that supports HTTPS.
+const DEFAULT_API_URL = 'http://api.aviationstack.com/v1'
+const AVIATIONSTACK_API_URL = process.env.AVIATIONSTACK_API_URL || DEFAULT_API_URL
 const API_KEY = process.env.AVIATIONSTACK_API_KEY
+const ENABLE_DATE_FILTER = process.env.AVIATIONSTACK_ENABLE_DATE_FILTER === 'true'
 
 if (!API_KEY) {
   console.error('❌ AVIATIONSTACK_API_KEY is not set')
@@ -29,25 +33,52 @@ export async function searchFlights(params: {
   url.searchParams.append('arr_iata', params.arrIata)
   url.searchParams.append('limit', '100') // Limit results to reduce noise
 
-  // Add flight_date parameter if provided (requires Basic+ plan)
-  if (params.flightDate) {
+  // Add flight_date parameter only if explicitly enabled (Basic+ plan)
+  if (params.flightDate && ENABLE_DATE_FILTER) {
     url.searchParams.append('flight_date', params.flightDate)
     console.log('Fetching flights from AviationStack:', params.depIata, '→', params.arrIata, 'on', params.flightDate)
   } else {
     console.log('Fetching flights from AviationStack:', params.depIata, '→', params.arrIata)
+    if (params.flightDate && !ENABLE_DATE_FILTER) {
+      console.log('Skipping flight_date filter because AVIATIONSTACK_ENABLE_DATE_FILTER is not enabled.')
+    }
   }
 
-  const response = await fetch(url.toString(), {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (compatible; TurbCast/1.0)',
-      'Accept': 'application/json',
-    },
-    cache: 'no-store', // Disable Next.js caching for now
-  })
+  // Helper to perform the request to a given URL (used for http/https retry logic)
+  async function performRequest(targetUrl: string): Promise<Response> {
+    return fetch(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; TurbCast/1.0)',
+        'Accept': 'application/json',
+      },
+      cache: 'no-store',
+    })
+  }
+
+  let response = await performRequest(url.toString())
+
+  // If HTTPS is used on a free plan, AviationStack may return 403. Retry over HTTP once.
+  if (!response.ok && response.status === 403 && url.protocol === 'https:') {
+    try {
+      const httpUrl = new URL(url.toString())
+      httpUrl.protocol = 'http:'
+      console.warn('AviationStack returned 403 over HTTPS. Retrying over HTTP…')
+      response = await performRequest(httpUrl.toString())
+    } catch {
+      // swallow; we will handle below
+    }
+  }
 
   if (!response.ok) {
-    const errorText = await response.text()
-    console.error('AviationStack API error:', response.status, errorText)
+    let details: string | undefined
+    try {
+      // AviationStack often returns JSON with an "error" object
+      const maybeJson = await response.json()
+      details = JSON.stringify(maybeJson)
+    } catch {
+      details = await response.text()
+    }
+    console.error('AviationStack API error:', response.status, details)
     throw new Error(`AviationStack API error: ${response.status} ${response.statusText}`)
   }
 

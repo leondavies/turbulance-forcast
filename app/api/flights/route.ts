@@ -70,12 +70,16 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Flight search error:', error)
 
+    const message = error instanceof Error ? error.message : 'Failed to search flights'
+    // Surface upstream 4xx/403 errors more clearly to the client for debugging.
+    const status = /403/.test(message) ? 502 : 500
+
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : 'Failed to search flights',
+        error: message,
         success: false,
       },
-      { status: 500 }
+      { status }
     )
   }
 }
