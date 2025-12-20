@@ -116,6 +116,26 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
             preserveAspectRatio="xMidYMid meet"
           >
             <g transform={`translate(${padding.left}, ${padding.top})`}>
+              {/* Turbulence level background zones */}
+              {levels.map((lvl) => {
+                // Calculate Y position and height based on EDR thresholds
+                const yTop = chartHeight - ((lvl.max - minEDR) / (maxEDR - minEDR)) * chartHeight
+                const yBottom = chartHeight - ((lvl.min - minEDR) / (maxEDR - minEDR)) * chartHeight
+                const height = yBottom - yTop
+
+                return (
+                  <rect
+                    key={lvl.level}
+                    x={0}
+                    y={yTop}
+                    width={chartWidth}
+                    height={height}
+                    fill={lvl.color}
+                    opacity={0.15}
+                  />
+                )
+              })}
+
               {/* Climb/Descent boundary lines */}
               <line
                 x1={climbEnd * chartWidth}
