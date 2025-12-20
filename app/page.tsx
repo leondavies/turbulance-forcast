@@ -7,7 +7,20 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-purple-800 py-24 md:py-32">
+      <section className="relative overflow-hidden py-24 md:py-32">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: 'url(/hero-image.jpg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat'
+          }}
+        />
+        {/* Dark Overlay for Text Readability */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-900/80 via-blue-800/75 to-purple-900/80" />
+
         <div className="container relative z-10 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
             <Badge className="mb-6 bg-white/20 text-white hover:bg-white/30" variant="secondary">
@@ -15,15 +28,15 @@ export default function Home() {
               Real-time Aviation Weather Data
             </Badge>
 
-            <h1 className="mb-6 text-5xl font-black tracking-tight text-white md:text-7xl">
+            <h1 className="mb-6 text-5xl font-black tracking-tight text-white md:text-7xl drop-shadow-lg">
               TurbCast
             </h1>
 
-            <p className="mb-4 text-2xl font-semibold text-blue-100 md:text-3xl">
+            <p className="mb-4 text-2xl font-semibold text-white md:text-3xl drop-shadow-md">
               Know Before You Fly
             </p>
 
-            <p className="mb-12 text-lg text-blue-100/90 md:text-xl">
+            <p className="mb-12 text-lg text-white/95 md:text-xl drop-shadow-md">
               Get accurate turbulence forecasts for your flight with real-time NOAA weather data
             </p>
 
