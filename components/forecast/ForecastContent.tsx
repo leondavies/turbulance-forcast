@@ -188,24 +188,9 @@ export function ForecastContent() {
           </Card>
         </div>
 
-        {/* Summary */}
+        {/* Turbulence Chart - FIRST! */}
         <div className="mb-6">
-          <TurbulenceSummary
-            summary={forecast.summary}
-            route={forecast.route}
-          />
-        </div>
-
-        {/* Data Sources & Confidence */}
-        {forecast.metadata && (
-          <div className="mb-6">
-            <DataSources metadata={forecast.metadata} cached={forecast.cached} />
-          </div>
-        )}
-
-        {/* Turbulence Chart */}
-        <div className="mb-6">
-          <Card>
+          <Card className="border-2 border-blue-200">
             <CardHeader>
               <CardTitle className="text-2xl">Turbulence Forecast Chart</CardTitle>
               <CardDescription>Turbulence levels throughout your flight</CardDescription>
@@ -220,6 +205,21 @@ export function ForecastContent() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Summary */}
+        <div className="mb-6">
+          <TurbulenceSummary
+            summary={forecast.summary}
+            route={forecast.route}
+          />
+        </div>
+
+        {/* Data Sources & Confidence */}
+        {forecast.metadata && (
+          <div className="mb-6">
+            <DataSources metadata={forecast.metadata} cached={forecast.cached} />
+          </div>
+        )}
 
         {/* Map */}
         <div className="mb-6">

@@ -23,36 +23,18 @@ export async function GET(request: NextRequest) {
       flightDate: date || undefined,
     })
 
-    // Filter to only show flights for the requested date
-    let filteredFlights = flights
+    // Filter to only show TODAY's flights
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const endOfToday = new Date(startOfToday)
+    endOfToday.setDate(endOfToday.getDate() + 1)
 
-    if (date) {
-      // Parse the requested date
-      const requestedDate = new Date(date)
-      const startOfDay = new Date(requestedDate.getFullYear(), requestedDate.getMonth(), requestedDate.getDate())
-      const endOfDay = new Date(startOfDay)
-      endOfDay.setDate(endOfDay.getDate() + 1)
+    const filteredFlights = flights.filter(flight => {
+      const departureDate = new Date(flight.departure.scheduled)
+      return departureDate >= startOfToday && departureDate < endOfToday
+    })
 
-      filteredFlights = flights.filter(flight => {
-        const departureDate = new Date(flight.departure.scheduled)
-        return departureDate >= startOfDay && departureDate < endOfDay
-      })
-
-      console.log(`Filtered ${flights.length} flights to ${filteredFlights.length} for ${date}`)
-    } else {
-      // If no date provided, show today and tomorrow
-      const now = new Date()
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      const dayAfterTomorrow = new Date(today)
-      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2)
-
-      filteredFlights = flights.filter(flight => {
-        const departureDate = new Date(flight.departure.scheduled)
-        return departureDate >= today && departureDate < dayAfterTomorrow
-      })
-
-      console.log(`Filtered ${flights.length} flights to ${filteredFlights.length} (today/tomorrow)`)
-    }
+    console.log(`Filtered ${flights.length} flights to ${filteredFlights.length} for TODAY (${startOfToday.toDateString()})`)
 
     // Deduplicate by flight number (keep only the most recent scheduled flight)
     const flightMap = new Map<string, typeof filteredFlights[0]>()

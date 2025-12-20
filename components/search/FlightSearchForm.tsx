@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/Button'
 import { Autocomplete } from '@/components/ui'
 import type { FlightSearchParams } from '@/types'
 
-type DateOption = 'today' | 'tomorrow'
-
 export function FlightSearchForm() {
   const router = useRouter()
   const [formData, setFormData] = useState<FlightSearchParams>({
@@ -16,7 +14,6 @@ export function FlightSearchForm() {
     departureDate: '',
     aircraftType: '',
   })
-  const [dateOption, setDateOption] = useState<DateOption>('today')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -38,15 +35,9 @@ export function FlightSearchForm() {
     setError('')
 
     try {
-      // Calculate the date based on selected option
+      // Always search for today's flights
       const today = new Date()
-      let searchDate = new Date(today)
-
-      if (dateOption === 'tomorrow') {
-        searchDate.setDate(searchDate.getDate() + 1)
-      }
-
-      const dateString = searchDate.toISOString().split('T')[0]
+      const dateString = today.toISOString().split('T')[0]
 
       const params = new URLSearchParams({
         origin: formData.origin,
@@ -139,97 +130,24 @@ export function FlightSearchForm() {
         </button>
       </div>
 
-      {/* Date Selection */}
-      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 border border-blue-100">
-        <h3 className="text-base font-semibold text-gray-800 mb-5 flex items-center gap-2">
-          <span>📅</span>
-          Departure Date
-        </h3>
-
-        <div className="grid grid-cols-2 gap-4">
-          {/* Today Option */}
-          <button
-            type="button"
-            onClick={() => setDateOption('today')}
-            className={`
-              relative p-6 rounded-xl border-2 transition-all duration-200
-              ${dateOption === 'today'
-                ? 'border-blue-500 bg-blue-50 shadow-lg'
-                : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md'
-              }
-            `}
-          >
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className={`
-                w-5 h-5 rounded-full border-2 flex items-center justify-center
-                ${dateOption === 'today'
-                  ? 'border-blue-500 bg-blue-500'
-                  : 'border-gray-300'
-                }
-              `}>
-                {dateOption === 'today' && (
-                  <div className="w-2 h-2 rounded-full bg-white" />
-                )}
-              </div>
-              <span className="text-3xl">🌅</span>
-            </div>
-            <div className={`
-              text-lg font-bold
-              ${dateOption === 'today' ? 'text-blue-700' : 'text-gray-700'}
-            `}>
-              Today
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              {new Date().toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric'
+      {/* Departure Date Info */}
+      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-100">
+        <div className="flex items-center justify-center gap-3">
+          <span className="text-3xl">📅</span>
+          <div className="text-center">
+            <div className="text-sm font-medium text-gray-600">Searching flights departing</div>
+            <div className="text-2xl font-bold text-blue-700">
+              Today - {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
               })}
             </div>
-          </button>
-
-          {/* Tomorrow Option */}
-          <button
-            type="button"
-            onClick={() => setDateOption('tomorrow')}
-            className={`
-              relative p-6 rounded-xl border-2 transition-all duration-200
-              ${dateOption === 'tomorrow'
-                ? 'border-blue-500 bg-blue-50 shadow-lg'
-                : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md'
-              }
-            `}
-          >
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className={`
-                w-5 h-5 rounded-full border-2 flex items-center justify-center
-                ${dateOption === 'tomorrow'
-                  ? 'border-blue-500 bg-blue-500'
-                  : 'border-gray-300'
-                }
-              `}>
-                {dateOption === 'tomorrow' && (
-                  <div className="w-2 h-2 rounded-full bg-white" />
-                )}
-              </div>
-              <span className="text-3xl">🌄</span>
-            </div>
-            <div className={`
-              text-lg font-bold
-              ${dateOption === 'tomorrow' ? 'text-blue-700' : 'text-gray-700'}
-            `}>
-              Tomorrow
-            </div>
-            <div className="text-sm text-gray-600 mt-1">
-              {(() => {
-                const tomorrow = new Date()
-                tomorrow.setDate(tomorrow.getDate() + 1)
-                return tomorrow.toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric'
-                })
-              })()}
-            </div>
-          </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Most accurate turbulence forecasts for today's flights
+            </p>
+          </div>
         </div>
       </div>
 
@@ -253,7 +171,7 @@ export function FlightSearchForm() {
           ) : (
             <span className="flex items-center gap-3">
               <span>✈️</span>
-              Search Real-Time Flights
+              Search Today's Flights
               <span>→</span>
             </span>
           )}
