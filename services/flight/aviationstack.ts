@@ -26,11 +26,13 @@ export async function searchFlights(params: {
   url.searchParams.append('arr_iata', params.arrIata)
   url.searchParams.append('limit', '100') // Limit results to reduce noise
 
-  // NOTE: flight_date parameter requires a paid plan (Basic+)
-  // Free plan only supports real-time flights
-  // params.flightDate is accepted but ignored for now
-
-  console.log('Fetching flights from AviationStack:', params.depIata, '→', params.arrIata)
+  // Add flight_date parameter if provided (requires Basic+ plan)
+  if (params.flightDate) {
+    url.searchParams.append('flight_date', params.flightDate)
+    console.log('Fetching flights from AviationStack:', params.depIata, '→', params.arrIata, 'on', params.flightDate)
+  } else {
+    console.log('Fetching flights from AviationStack:', params.depIata, '→', params.arrIata)
+  }
 
   const response = await fetch(url.toString(), {
     headers: {
