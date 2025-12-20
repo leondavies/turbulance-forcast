@@ -3,6 +3,7 @@ import { Header, Footer } from "@/components/layout";
 import Script from "next/script";
 import { Suspense } from "react";
 import GtmPageView from "@/components/analytics/GtmPageView";
+import ConsentBanner from "@/components/analytics/ConsentBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -56,6 +57,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             <GtmPageView />
           </Suspense>
         ) : null}
+        {gtmId && isProd ? <ConsentBanner /> : null}
         <main className="flex-1">
           {children}
         </main>
