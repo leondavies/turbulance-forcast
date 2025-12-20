@@ -20,9 +20,9 @@ interface TurbulenceChartProps {
 }
 
 export function TurbulenceChart({ forecast, route, origin, destination }: TurbulenceChartProps) {
-  const width = 800
-  const height = 400
-  const padding = { top: 20, right: 20, bottom: 60, left: 80 }
+  const width = 1000
+  const height = 300
+  const padding = { top: 20, right: 20, bottom: 50, left: 60 }
   const chartWidth = width - padding.left - padding.right
   const chartHeight = height - padding.top - padding.bottom
 
@@ -65,10 +65,10 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
   const durationHours = Math.ceil(route.estimatedDuration / 60)
 
   return (
-    <div className="relative bg-white rounded-2xl p-3 sm:p-6">
+    <div className="relative bg-white rounded-xl">
       {/* Warning banner */}
-      <div className="mb-6 flex items-center gap-3 p-4 bg-orange-50 border-l-4 border-orange-400 rounded-lg">
-        <div className="text-2xl">⚠️</div>
+      <div className="mb-4 flex items-center gap-3 p-3 sm:p-4 bg-orange-50 border-l-4 border-orange-400 rounded-lg">
+        <div className="text-xl sm:text-2xl">⚠️</div>
         <div>
           <div className="font-semibold text-orange-900 text-sm sm:text-base">
             {forecast.some(f => f.turbulence.level === 'moderate' || f.turbulence.level === 'severe')
@@ -78,45 +78,43 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
         </div>
       </div>
 
-      {/* Horizontal scroll container for mobile */}
-      <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
-        <div className="min-w-[600px] flex gap-3 sm:gap-6">
-          {/* Turbulence level sidebar */}
-          <div className="flex flex-col flex-shrink-0" style={{ width: '80px', height: `${chartHeight}px`, marginTop: `${padding.top}px` }}>
-          {levels.map((lvl, idx) => {
-            // Calculate height based on EDR range
-            const rangeSize = lvl.max - lvl.min
-            const heightPx = (rangeSize / maxEDR) * chartHeight
-
+      {/* Chart container */}
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Turbulence level legend - horizontal on mobile, vertical on desktop */}
+        <div className="flex lg:flex-col gap-2 lg:gap-0 justify-center lg:justify-start lg:w-24 flex-shrink-0">
+          {levels.map((lvl) => {
             return (
               <div
                 key={lvl.level}
-                className="relative group cursor-pointer"
-                style={{
-                  height: `${heightPx}px`,
-                  backgroundColor: lvl.color,
-                  opacity: 0.8,
-                }}
+                className="group cursor-pointer relative"
               >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xs sm:text-sm font-semibold text-gray-800 transform -rotate-90 whitespace-nowrap">
-                  {lvl.label}
-                </span>
-              </div>
+                <div className="flex lg:flex-col items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div
+                    className="w-6 h-6 lg:w-8 lg:h-8 rounded"
+                    style={{ backgroundColor: lvl.color }}
+                  />
+                  <span className="text-xs font-medium text-gray-700 whitespace-nowrap">
+                    {lvl.label}
+                  </span>
+                </div>
 
-              {/* Tooltip */}
-              <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                <div className="font-bold">{lvl.label} turbulence</div>
-                <div className="text-sm">{lvl.desc}</div>
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 lg:left-full lg:translate-x-0 lg:ml-4 top-full mt-2 lg:top-1/2 lg:-translate-y-1/2 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 text-sm">
+                  <div className="font-bold">{lvl.label} turbulence</div>
+                  <div className="text-xs">{lvl.desc}</div>
+                </div>
               </div>
-            </div>
             )
           })}
         </div>
 
         {/* Main chart */}
-        <div className="flex-1">
-          <svg width={width} height={height} className="overflow-visible">
+        <div className="flex-1 overflow-x-auto">
+          <svg
+            viewBox={`0 0 ${width} ${height}`}
+            className="w-full h-auto max-h-[300px] sm:max-h-[400px]"
+            preserveAspectRatio="xMidYMid meet"
+          >
             <g transform={`translate(${padding.left}, ${padding.top})`}>
               {/* Climb/Descent boundary lines */}
               <line
@@ -278,11 +276,10 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
             </g>
           </svg>
         </div>
-        </div>
       </div>
 
       {/* Legend */}
-      <div className="mt-8 pt-6 border-t border-gray-200 space-y-4">
+      <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
         <div className="flex items-start gap-3">
           <svg width="60" height="3" className="mt-2 flex-shrink-0">
             <line x1="0" y1="1.5" x2="60" y2="1.5" stroke="#3b82f6" strokeWidth="3" />
