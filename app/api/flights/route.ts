@@ -54,10 +54,36 @@ export async function GET(request: NextRequest) {
       console.log(`Filtered ${flights.length} flights to ${filteredFlights.length} (today/tomorrow)`)
     }
 
+    // Deduplicate by flight number (keep only the most recent scheduled flight)
+    const flightMap = new Map<string, typeof filteredFlights[0]>()
+
+    for (const flight of filteredFlights) {
+      const key = `${flight.flightNumber}-${flight.departure.scheduled.toISOString().split('T')[0]}`
+
+      // Only keep scheduled or active flights (skip landed, cancelled, etc)
+      if (flight.status !== 'scheduled' && flight.status !== 'active') {
+        continue
+      }
+
+      // If we haven't seen this flight, or this one is more relevant
+      if (!flightMap.has(key)) {
+        flightMap.set(key, flight)
+      }
+    }
+
+    const deduplicatedFlights = Array.from(flightMap.values())
+
+    // Sort by departure time
+    deduplicatedFlights.sort((a, b) =>
+      new Date(a.departure.scheduled).getTime() - new Date(b.departure.scheduled).getTime()
+    )
+
+    console.log(`Deduplicated from ${filteredFlights.length} to ${deduplicatedFlights.length} flights`)
+
     return NextResponse.json({
       success: true,
-      count: filteredFlights.length,
-      flights: filteredFlights,
+      count: deduplicatedFlights.length,
+      flights: deduplicatedFlights,
     })
   } catch (error) {
     console.error('Flight search error:', error)

@@ -24,6 +24,7 @@ export async function searchFlights(params: {
   url.searchParams.append('access_key', API_KEY)
   url.searchParams.append('dep_iata', params.depIata)
   url.searchParams.append('arr_iata', params.arrIata)
+  url.searchParams.append('limit', '100') // Limit results to reduce noise
 
   // NOTE: flight_date parameter requires a paid plan (Basic+)
   // Free plan only supports real-time flights
