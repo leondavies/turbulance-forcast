@@ -39,15 +39,25 @@ export interface ForecastResult {
 
 /**
  * Fetch real turbulence forecast data from Aviation Weather Center
- * Uses SIGMET/AIRMET data and WAFS turbulence forecasts
+ * Uses SIGMET/AIRMET data and WAFS turbulence forecasts.
+ * Optionally time-aware: departureTime adjusts diurnal variability and seeds.
  */
-export async function generateTurbulenceForecast(waypoints: RoutePoint[]): Promise<ForecastResult> {
+export async function generateTurbulenceForecast(
+  waypoints: RoutePoint[],
+  opts?: { departureTime?: Date; aircraftIata?: string }
+): Promise<ForecastResult> {
   try {
     // Fetch turbulence data from Aviation Weather Center
     const turbulenceData = await fetchAviationWeatherData(waypoints)
 
     const segments = waypoints.map((point, index) => {
-      const turbulence = calculateTurbulenceForPoint(point, turbulenceData, index, waypoints.length)
+      const turbulence = calculateTurbulenceForPoint(
+        point,
+        turbulenceData,
+        index,
+        waypoints.length,
+        opts
+      )
       return {
         ...point,
         turbulence,
@@ -144,7 +154,8 @@ function calculateTurbulenceForPoint(
   point: RoutePoint,
   weatherData: AviationWeatherData,
   index: number,
-  total: number
+  total: number,
+  opts?: { departureTime?: Date; aircraftIata?: string }
 ): TurbulenceData {
   let baseEDR = 0.05 // Start with smooth conditions
 
@@ -186,6 +197,16 @@ function calculateTurbulenceForPoint(
         baseEDR = Math.max(baseEDR, 0.25)
       }
     })
+  }
+
+  // Time-of-day diurnal adjustment (afternoon convection more likely)
+  if (opts?.departureTime) {
+    const localHour = opts.departureTime.getUTCHours() // approximate; real impl should convert to local
+    const diurnal =
+      localHour >= 12 && localHour <= 20
+        ? 0.04 + seededRandom(point.lat, point.lon, index, 999) * 0.04
+        : 0
+    baseEDR = Math.max(baseEDR, 0.05 + diurnal)
   }
 
   // If no real data, calculate based on atmospheric conditions

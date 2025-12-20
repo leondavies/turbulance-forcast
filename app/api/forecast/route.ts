@@ -10,6 +10,8 @@ export async function GET(request: NextRequest) {
     const originIata = searchParams.get('origin')
     const destinationIata = searchParams.get('destination')
     const flightNumber = searchParams.get('flightNumber')
+    const departureIso = searchParams.get('departure') // ISO string
+    const aircraftIata = searchParams.get('aircraft') // optional IATA like A320, B738
 
     if (!originIata || !destinationIata) {
       return NextResponse.json(
@@ -18,8 +20,20 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Check cache first
-    const cacheKey = `${originIata.toUpperCase()}-${destinationIata.toUpperCase()}`
+    // Bucket departure to the hour to increase cache hits but still vary with time
+    let departureBucket = 'na'
+    let departureDate: Date | null = null
+    if (departureIso) {
+      const d = new Date(departureIso)
+      if (!isNaN(d.getTime())) {
+        d.setMinutes(0, 0, 0)
+        departureBucket = d.toISOString().slice(0, 13) // YYYY-MM-DDTHH
+        departureDate = new Date(departureIso)
+      }
+    }
+
+    // Check cache first (include time bucket and aircraft)
+    const cacheKey = `${originIata.toUpperCase()}-${destinationIata.toUpperCase()}-${departureBucket}-${(aircraftIata || 'na').toUpperCase()}`
     const cached = await getCachedForecast(cacheKey)
 
     if (cached) {
@@ -54,7 +68,10 @@ export async function GET(request: NextRequest) {
     )
 
     // Generate turbulence forecast using real Aviation Weather Center data
-    const forecastResult = await generateTurbulenceForecast(route.waypoints)
+    const forecastResult = await generateTurbulenceForecast(route.waypoints, {
+      departureTime: departureDate || undefined,
+      aircraftIata: aircraftIata || undefined,
+    })
     const forecast = forecastResult.segments
 
     // Calculate summary statistics

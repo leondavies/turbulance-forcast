@@ -75,6 +75,8 @@ export function ForecastContent() {
   const origin = searchParams.get('origin')
   const destination = searchParams.get('destination')
   const flightNumber = searchParams.get('flightNumber')
+  const departure = searchParams.get('departure')
+  const aircraft = searchParams.get('aircraft')
 
   useEffect(() => {
     async function fetchForecast() {
@@ -87,6 +89,8 @@ export function ForecastContent() {
       try {
         const params = new URLSearchParams({ origin, destination })
         if (flightNumber) params.set('flightNumber', flightNumber)
+        if (departure) params.set('departure', departure)
+        if (aircraft) params.set('aircraft', aircraft)
 
         const res = await fetch(`/api/forecast?${params.toString()}`)
         const data = await res.json()

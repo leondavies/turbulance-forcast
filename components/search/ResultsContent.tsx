@@ -164,7 +164,9 @@ export function ResultsContent() {
                       origin: flight.origin.iata,
                       destination: flight.destination.iata,
                       flightNumber: flight.flightNumber,
+                      departure: new Date(flight.departure.scheduled).toISOString(),
                     })
+                    if (flight.aircraft.iata) params.set('aircraft', flight.aircraft.iata)
                     router.push(`/forecast?${params.toString()}`)
                   }}
                 >
