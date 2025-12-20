@@ -5,7 +5,10 @@ const AVIATIONSTACK_API_URL = 'https://api.aviationstack.com/v1'
 const API_KEY = process.env.AVIATIONSTACK_API_KEY
 
 if (!API_KEY) {
-  console.warn('AVIATIONSTACK_API_KEY is not set')
+  console.error('❌ AVIATIONSTACK_API_KEY is not set')
+  console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('AVIATION')))
+} else {
+  console.log('✓ AVIATIONSTACK_API_KEY loaded:', API_KEY.substring(0, 8) + '...')
 }
 
 // Cache for aircraft lookups to avoid repeated DB queries
