@@ -2,6 +2,16 @@ import type { RoutePoint } from '../route/greatCircle'
 
 export type TurbulenceLevel = 'smooth' | 'light' | 'moderate' | 'severe'
 
+/**
+ * Deterministic pseudo-random number generator
+ * Uses a simple hash function seeded from coordinates and index
+ */
+function seededRandom(lat: number, lon: number, index: number, salt: number = 0): number {
+  // Create a seed from coordinates, index, and optional salt
+  const seed = Math.abs(Math.sin(lat * 12.9898 + lon * 78.233 + index * 43.758 + salt) * 43758.5453)
+  return seed - Math.floor(seed) // Return fractional part [0, 1)
+}
+
 export interface TurbulenceData {
   edr: number // Eddy Dissipation Rate (0-1)
   level: TurbulenceLevel
@@ -13,29 +23,79 @@ export interface SegmentForecast extends RoutePoint {
   turbulence: TurbulenceData
 }
 
+export interface ForecastMetadata {
+  pirepCount: number
+  sigmetCount: number
+  airmetCount: number
+  dataQuality: 'high' | 'medium' | 'low'
+  lastUpdated: Date
+  usingFallback: boolean
+}
+
+export interface ForecastResult {
+  segments: SegmentForecast[]
+  metadata: ForecastMetadata
+}
+
 /**
  * Fetch real turbulence forecast data from Aviation Weather Center
  * Uses SIGMET/AIRMET data and WAFS turbulence forecasts
  */
-export async function generateTurbulenceForecast(waypoints: RoutePoint[]): Promise<SegmentForecast[]> {
+export async function generateTurbulenceForecast(waypoints: RoutePoint[]): Promise<ForecastResult> {
   try {
     // Fetch turbulence data from Aviation Weather Center
     const turbulenceData = await fetchAviationWeatherData(waypoints)
 
-    return waypoints.map((point, index) => {
+    const segments = waypoints.map((point, index) => {
       const turbulence = calculateTurbulenceForPoint(point, turbulenceData, index, waypoints.length)
       return {
         ...point,
         turbulence,
       }
     })
+
+    // Calculate data quality based on available reports
+    const pirepCount = turbulenceData.pireps.length
+    const sigmetCount = turbulenceData.sigmets.length
+    const airmetCount = turbulenceData.airmets.length
+
+    let dataQuality: 'high' | 'medium' | 'low' = 'low'
+    if (pirepCount >= 5 || sigmetCount >= 2) {
+      dataQuality = 'high'
+    } else if (pirepCount >= 2 || sigmetCount >= 1 || airmetCount >= 1) {
+      dataQuality = 'medium'
+    }
+
+    return {
+      segments,
+      metadata: {
+        pirepCount,
+        sigmetCount,
+        airmetCount,
+        dataQuality,
+        lastUpdated: new Date(),
+        usingFallback: false
+      }
+    }
   } catch (error) {
     console.error('Error fetching aviation weather data:', error)
     // Fallback to calculated data based on atmospheric conditions
-    return waypoints.map((point, index) => ({
+    const segments = waypoints.map((point, index) => ({
       ...point,
       turbulence: calculateAtmosphericTurbulence(point, index, waypoints.length),
     }))
+
+    return {
+      segments,
+      metadata: {
+        pirepCount: 0,
+        sigmetCount: 0,
+        airmetCount: 0,
+        dataQuality: 'low',
+        lastUpdated: new Date(),
+        usingFallback: true
+      }
+    }
   }
 }
 
@@ -96,15 +156,15 @@ function calculateTurbulenceForPoint(
   })
 
   // Analyze pilot reports for turbulence
-  nearbyReports.forEach((pirep: any) => {
+  nearbyReports.forEach((pirep: any, reportIdx: number) => {
     if (pirep.turbulence) {
       const intensity = pirep.turbulence.intensity || ''
       if (intensity.includes('SEV') || intensity.includes('EXTREME')) {
-        baseEDR = Math.max(baseEDR, 0.45 + Math.random() * 0.15)
+        baseEDR = Math.max(baseEDR, 0.45 + seededRandom(point.lat, point.lon, index, reportIdx) * 0.15)
       } else if (intensity.includes('MOD')) {
-        baseEDR = Math.max(baseEDR, 0.25 + Math.random() * 0.1)
+        baseEDR = Math.max(baseEDR, 0.25 + seededRandom(point.lat, point.lon, index, reportIdx + 100) * 0.1)
       } else if (intensity.includes('LGT')) {
-        baseEDR = Math.max(baseEDR, 0.15 + Math.random() * 0.05)
+        baseEDR = Math.max(baseEDR, 0.15 + seededRandom(point.lat, point.lon, index, reportIdx + 200) * 0.05)
       }
     }
   })
@@ -148,7 +208,7 @@ function calculateAtmosphericEDR(point: RoutePoint, index: number, total: number
   if (point.altitude > 28000 && point.altitude < 42000) {
     // Higher turbulence likelihood near jet stream (typically 30-40°N)
     if (Math.abs(point.lat) > 30 && Math.abs(point.lat) < 45) {
-      edr += 0.08 + Math.random() * 0.12
+      edr += 0.08 + seededRandom(point.lat, point.lon, index, 1) * 0.12
     }
   }
 
@@ -156,22 +216,22 @@ function calculateAtmosphericEDR(point: RoutePoint, index: number, total: number
   // Approximate mountain regions by latitude bands
   if (Math.abs(point.lat) > 35 && Math.abs(point.lat) < 50) {
     if (point.altitude > 15000 && point.altitude < 35000) {
-      edr += Math.random() * 0.1
+      edr += seededRandom(point.lat, point.lon, index, 2) * 0.1
     }
   }
 
   // Convective turbulence (more common at lower latitudes and altitudes)
   if (Math.abs(point.lat) < 35) {
     if (point.altitude < 30000) {
-      // Random convective activity
-      if (Math.random() < 0.15) {
-        edr += 0.15 + Math.random() * 0.15
+      // Deterministic convective activity based on location
+      if (seededRandom(point.lat, point.lon, index, 3) < 0.15) {
+        edr += 0.15 + seededRandom(point.lat, point.lon, index, 4) * 0.15
       }
     }
   }
 
   // Clear air turbulence (can occur anywhere)
-  edr += Math.random() * 0.05
+  edr += seededRandom(point.lat, point.lon, index, 5) * 0.05
 
   return Math.min(edr, 0.65)
 }
@@ -193,12 +253,12 @@ function calculateTurbulenceLevel(edr: number, point: RoutePoint): TurbulenceDat
   // Generate realistic wind data based on altitude
   // Wind speeds generally increase with altitude
   const baseWind = point.altitude / 400 // Rough approximation
-  const windSpeed = Math.round(baseWind + (Math.random() - 0.5) * 40)
+  const windSpeed = Math.round(baseWind + (seededRandom(point.lat, point.lon, 0, 6) - 0.5) * 40)
 
   // Wind direction varies by hemisphere and altitude
   // Northern hemisphere: generally westerly at altitude
   const baseDirection = point.lat > 0 ? 270 : 90
-  const windDirection = Math.round(baseDirection + (Math.random() - 0.5) * 60)
+  const windDirection = Math.round(baseDirection + (seededRandom(point.lat, point.lon, 0, 7) - 0.5) * 60)
 
   return {
     edr: Math.round(edr * 1000) / 1000,

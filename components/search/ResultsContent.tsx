@@ -21,7 +21,7 @@ export function ResultsContent() {
 
   useEffect(() => {
     async function fetchFlights() {
-      if (!origin || !destination || !date) {
+      if (!origin || !destination) {
         setError('Missing search parameters')
         setIsLoading(false)
         return
@@ -31,8 +31,8 @@ export function ResultsContent() {
         const params = new URLSearchParams({
           origin,
           destination,
-          date,
         })
+        if (date) params.set('date', date)
 
         const res = await fetch(`/api/flights?${params.toString()}`)
         const data = await res.json()

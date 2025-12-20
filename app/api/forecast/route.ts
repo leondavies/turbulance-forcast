@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { calculateGreatCircleRoute } from '@/services/route/greatCircle'
 import { generateTurbulenceForecast } from '@/services/weather/aviationWeather'
 import { prisma } from '@/lib/db'
+import { getCachedForecast, setCachedForecast } from '@/lib/cache'
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,6 +17,21 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Check cache first
+    const cacheKey = `${originIata.toUpperCase()}-${destinationIata.toUpperCase()}`
+    const cached = await getCachedForecast(cacheKey)
+
+    if (cached) {
+      console.log(`Cache hit for ${cacheKey}`)
+      return NextResponse.json({
+        ...cached,
+        cached: true,
+        cacheHit: true
+      })
+    }
+
+    console.log(`Cache miss for ${cacheKey}, generating forecast...`)
 
     // Get airport coordinates from database
     const [origin, destination] = await Promise.all([
@@ -38,7 +54,8 @@ export async function GET(request: NextRequest) {
     )
 
     // Generate turbulence forecast using real Aviation Weather Center data
-    const forecast = await generateTurbulenceForecast(route.waypoints)
+    const forecastResult = await generateTurbulenceForecast(route.waypoints)
+    const forecast = forecastResult.segments
 
     // Calculate summary statistics
     const maxTurbulence = Math.max(...forecast.map(f => f.turbulence.edr))
@@ -56,7 +73,7 @@ export async function GET(request: NextRequest) {
       ((levelCounts.smooth || 0) / forecast.length) * 100
     )
 
-    return NextResponse.json({
+    const response = {
       success: true,
       flightNumber: flightNumber || `${originIata}-${destinationIata}`,
       origin: {
@@ -89,7 +106,18 @@ export async function GET(request: NextRequest) {
         smoothPercentage,
         levelCounts,
       },
-    })
+      metadata: {
+        ...forecastResult.metadata,
+        lastUpdated: forecastResult.metadata.lastUpdated.toISOString()
+      },
+      cached: false,
+      cacheHit: false
+    }
+
+    // Store in cache for future requests
+    await setCachedForecast(cacheKey, response)
+
+    return NextResponse.json(response)
   } catch (error) {
     console.error('Forecast error:', error)
     return NextResponse.json(

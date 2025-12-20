@@ -39,3 +39,14 @@ model Aircraft {
 
   @@index([iata])
 }
+
+model ForecastCache {
+  id        String   @id @default(cuid())
+  cacheKey  String   @unique // origin-destination combo
+  payload   String   @db.Text // JSON forecast data
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([cacheKey])
+  @@index([expiresAt])
+}

@@ -9,10 +9,13 @@ import { TurbulenceMap } from './TurbulenceMap'
 import { TurbulenceSummary } from './TurbulenceSummary'
 import { RouteSegments } from './RouteSegments'
 import { TurbulenceChart } from './TurbulenceChart'
+import { DataSources } from './DataSources'
 
 interface ForecastData {
   success: boolean
   flightNumber: string
+  cached?: boolean
+  cacheHit?: boolean
   origin: {
     iata: string
     name: string
@@ -51,6 +54,14 @@ interface ForecastData {
     maxTurbulenceLevel: string
     smoothPercentage: number
     levelCounts: Record<string, number>
+  }
+  metadata?: {
+    pirepCount: number
+    sigmetCount: number
+    airmetCount: number
+    dataQuality: 'high' | 'medium' | 'low'
+    lastUpdated: string
+    usingFallback: boolean
   }
 }
 
@@ -184,6 +195,13 @@ export function ForecastContent() {
             route={forecast.route}
           />
         </div>
+
+        {/* Data Sources & Confidence */}
+        {forecast.metadata && (
+          <div className="mb-6">
+            <DataSources metadata={forecast.metadata} cached={forecast.cached} />
+          </div>
+        )}
 
         {/* Turbulence Chart */}
         <div className="mb-6">
