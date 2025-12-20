@@ -30,9 +30,9 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
   const climbEnd = 0.15 // First 15% is climb
   const descentStart = 0.80 // Last 20% is descent
 
-  // Find min/max turbulence for scaling
-  const maxEDR = Math.max(...forecast.map(f => f.turbulence.edr))
-  const minEDR = Math.min(...forecast.map(f => f.turbulence.edr))
+  // Use fixed EDR scale (0-0.6) to match turbulence thresholds
+  const maxEDR = 0.6
+  const minEDR = 0
 
   // Create path data for turbulence line
   const pathPoints = forecast.map((point, i) => {
@@ -53,12 +53,12 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
     Z
   `
 
-  // Turbulence levels for sidebar
+  // Turbulence levels for sidebar (matching actual EDR thresholds)
   const levels = [
-    { level: 'severe', label: 'Severe', color: '#ef4444', desc: 'Violent and sudden changes', min: 50, max: 60 },
-    { level: 'mod-sev', label: 'Mod-Sev', color: '#f97316', desc: 'Strong strains against seat belts', min: 40, max: 50 },
-    { level: 'moderate', label: 'Moderate', color: '#fbbf24', desc: 'Difficulty walking', min: 20, max: 40 },
-    { level: 'light', label: 'Light', color: '#fde68a', desc: 'Smooth flight conditions', min: 0, max: 20 },
+    { level: 'severe', label: 'Severe', color: '#ef4444', desc: 'EDR ≥ 0.40', min: 0.40, max: 0.60 },
+    { level: 'moderate', label: 'Moderate', color: '#f97316', desc: 'EDR 0.25-0.40', min: 0.25, max: 0.40 },
+    { level: 'light', label: 'Light', color: '#fbbf24', desc: 'EDR 0.15-0.25', min: 0.15, max: 0.25 },
+    { level: 'smooth', label: 'Smooth', color: '#10b981', desc: 'EDR < 0.15', min: 0.00, max: 0.15 },
   ]
 
   // Flight duration in hours
@@ -80,17 +80,22 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
 
       <div className="flex gap-6">
         {/* Turbulence level sidebar */}
-        <div className="flex flex-col justify-between" style={{ width: '120px', height: `${height}px` }}>
-          {levels.map((lvl, idx) => (
-            <div
-              key={lvl.level}
-              className="relative group cursor-pointer"
-              style={{
-                height: `${chartHeight / levels.length}px`,
-                backgroundColor: lvl.color,
-                opacity: 0.8,
-              }}
-            >
+        <div className="flex flex-col-reverse" style={{ width: '120px', height: `${height}px`, marginTop: `${padding.top}px` }}>
+          {levels.map((lvl, idx) => {
+            // Calculate height based on EDR range
+            const rangeSize = lvl.max - lvl.min
+            const heightPx = (rangeSize / maxEDR) * chartHeight
+
+            return (
+              <div
+                key={lvl.level}
+                className="relative group cursor-pointer"
+                style={{
+                  height: `${heightPx}px`,
+                  backgroundColor: lvl.color,
+                  opacity: 0.8,
+                }}
+              >
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-sm font-semibold text-gray-800 transform -rotate-90 whitespace-nowrap">
                   {lvl.label}
@@ -103,8 +108,8 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
                 <div className="text-sm">{lvl.desc}</div>
               </div>
             </div>
-          ))}
-          <div className="text-xs text-gray-500 mt-2 text-center">EDR Scale</div>
+            )
+          })}
         </div>
 
         {/* Main chart */}
@@ -222,7 +227,7 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
 
               {/* Y-Axis labels (EDR values) */}
               {Array.from({ length: 7 }).map((_, i) => {
-                const value = (6 - i) * 10
+                const value = ((6 - i) * 0.1).toFixed(1)
                 const y = (i / 6) * chartHeight
                 return (
                   <g key={i}>
