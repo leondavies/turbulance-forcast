@@ -23,10 +23,25 @@ export async function GET(request: NextRequest) {
       flightDate: date || undefined,
     })
 
+    // Filter to only show flights departing today or tomorrow
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const tomorrow = new Date(today)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const dayAfterTomorrow = new Date(tomorrow)
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
+
+    const filteredFlights = flights.filter(flight => {
+      const departureDate = new Date(flight.departure.scheduled)
+      return departureDate >= today && departureDate < dayAfterTomorrow
+    })
+
+    console.log(`Filtered ${flights.length} flights to ${filteredFlights.length} (today/tomorrow only)`)
+
     return NextResponse.json({
       success: true,
-      count: flights.length,
-      flights,
+      count: filteredFlights.length,
+      flights: filteredFlights,
     })
   } catch (error) {
     console.error('Flight search error:', error)

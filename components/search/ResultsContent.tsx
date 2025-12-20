@@ -121,12 +121,17 @@ export function ResultsContent() {
             {origin} → {destination}
           </h1>
           <p className="text-gray-600">
-            {new Date(date!).toLocaleDateString('en-US', {
+            {date ? new Date(date).toLocaleDateString('en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
               day: 'numeric',
-            })}
+            }) : new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }) + ' (Real-time flights)'}
           </p>
         </div>
 
