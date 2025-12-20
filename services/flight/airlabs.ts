@@ -133,9 +133,15 @@ export async function searchFlights(params: {
 
   console.log(`Found ${data.response.length} flights from AirLabs`)
 
+  // Filter out codeshares - only keep operating carriers (passenger flights)
+  // If cs_flight_iata is not null, it's a codeshare of another flight
+  const operatingFlights = data.response.filter(flight => !flight.cs_flight_iata)
+
+  console.log(`Filtered to ${operatingFlights.length} operating carrier flights (removed ${data.response.length - operatingFlights.length} codeshares)`)
+
   // Transform AirLabs data to our Flight type
   const transformedFlights = await Promise.all(
-    data.response.map(flight => transformFlight(flight))
+    operatingFlights.map(flight => transformFlight(flight))
   )
 
   return transformedFlights
