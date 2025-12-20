@@ -137,15 +137,10 @@ export function FlightSearchForm() {
           <div className="text-center">
             <div className="text-sm font-medium text-gray-600">Searching flights departing</div>
             <div className="text-2xl font-bold text-blue-700">
-              Today - {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-              })}
+              Today
             </div>
             <p className="text-xs text-gray-500 mt-2">
-              Most accurate turbulence forecasts for today's flights
+              In the departure airport's local timezone
             </p>
           </div>
         </div>

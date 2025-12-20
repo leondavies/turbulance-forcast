@@ -121,7 +121,10 @@ export function ResultsContent() {
             {origin} → {destination}
           </h1>
           <p className="text-gray-600">
-            Today - {new Date().toLocaleDateString('en-US', {
+            Today's Flights
+          </p>
+          <p className="text-sm text-gray-500">
+            Local timezone - {new Date().toLocaleDateString('en-US', {
               weekday: 'long',
               month: 'long',
               day: 'numeric',
