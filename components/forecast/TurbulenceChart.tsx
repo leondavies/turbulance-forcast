@@ -54,11 +54,12 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
   `
 
   // Turbulence levels for sidebar (matching actual EDR thresholds)
+  // Ordered from low to high severity
   const levels = [
-    { level: 'severe', label: 'Severe', color: '#ef4444', desc: 'EDR ≥ 0.40', min: 0.40, max: 0.60 },
-    { level: 'moderate', label: 'Moderate', color: '#f97316', desc: 'EDR 0.25-0.40', min: 0.25, max: 0.40 },
-    { level: 'light', label: 'Light', color: '#fbbf24', desc: 'EDR 0.15-0.25', min: 0.15, max: 0.25 },
     { level: 'smooth', label: 'Smooth', color: '#10b981', desc: 'EDR < 0.15', min: 0.00, max: 0.15 },
+    { level: 'light', label: 'Light', color: '#fbbf24', desc: 'EDR 0.15-0.25', min: 0.15, max: 0.25 },
+    { level: 'moderate', label: 'Moderate', color: '#f97316', desc: 'EDR 0.25-0.40', min: 0.25, max: 0.40 },
+    { level: 'severe', label: 'Severe', color: '#ef4444', desc: 'EDR ≥ 0.40', min: 0.40, max: 0.60 },
   ]
 
   // Flight duration in hours
@@ -126,13 +127,13 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
       {/* Chart container */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Turbulence level legend - horizontal on mobile, vertical on desktop */}
-        <div className="flex lg:flex-col gap-1 sm:gap-2 lg:gap-0 justify-start lg:justify-start lg:w-24 flex-shrink-0 overflow-x-auto pb-2 lg:pb-0">
-          <div className="flex lg:flex-col gap-1 sm:gap-2 lg:gap-0 min-w-max lg:min-w-0">
+        <div className="lg:w-24 flex-shrink-0">
+          <div className="flex lg:flex-col gap-2 lg:gap-0">
             {levels.map((lvl) => {
               return (
                 <div
                   key={lvl.level}
-                  className="group cursor-pointer relative"
+                  className="group cursor-pointer relative flex-1 lg:flex-none"
                 >
                   <div className="flex lg:flex-col items-center gap-1 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition-colors">
                     <div

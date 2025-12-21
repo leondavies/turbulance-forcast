@@ -124,7 +124,7 @@ export function ResultsContent() {
           >
             ← Back to Search
           </Button>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
             {origin} → {destination}
           </h1>
           <p className="text-gray-600">
@@ -180,23 +180,23 @@ export function ResultsContent() {
                     router.push(`/forecast?${params.toString()}`)
                   }}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between gap-4">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center justify-between gap-2 sm:gap-4">
                       {/* Left: Flight Number & Airline */}
-                      <div className="flex flex-col min-w-[120px]">
-                        <div className="text-lg font-bold text-gray-900">
+                      <div className="flex flex-col min-w-[80px] sm:min-w-[120px]">
+                        <div className="text-base sm:text-lg font-bold text-gray-900">
                           {flight.flightNumber}
                         </div>
-                        <div className="text-sm text-gray-600">
+                        <div className="text-xs sm:text-sm text-gray-600 truncate">
                           {flight.airline.name}
                         </div>
                       </div>
 
                       {/* Center: Times and Duration */}
-                      <div className="flex-1 flex items-center justify-center gap-4 sm:gap-6">
+                      <div className="flex-1 flex items-center justify-center gap-2 sm:gap-4 md:gap-6">
                         {/* Departure */}
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
                             {formatTime(flight.departure.scheduled, flight.origin.timezone)}
                           </div>
                           <div className="text-xs text-gray-500 uppercase font-medium">
@@ -205,7 +205,7 @@ export function ResultsContent() {
                         </div>
 
                         {/* Arrow & Duration */}
-                        <div className="flex flex-col items-center justify-center px-2">
+                        <div className="flex flex-col items-center justify-center px-1 sm:px-2">
                           <div className="text-gray-400 text-sm mb-1">✈</div>
                           <div className="text-xs text-gray-500 whitespace-nowrap">
                             {formatDuration(flight.departure.scheduled, flight.arrival.scheduled)}
@@ -214,7 +214,7 @@ export function ResultsContent() {
 
                         {/* Arrival */}
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
                             {formatTime(flight.arrival.scheduled, flight.destination.timezone)}
                           </div>
                           <div className="text-xs text-gray-500 uppercase font-medium">
@@ -224,13 +224,13 @@ export function ResultsContent() {
                       </div>
 
                       {/* Right: View Forecast Button */}
-                      <div className="flex items-center">
+                      <div className="flex items-center flex-shrink-0">
                         <div className="hidden sm:flex items-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
                           View Forecast
                           <span>→</span>
                         </div>
-                        <div className="sm:hidden flex items-center justify-center w-10 h-10 text-blue-600 bg-blue-50 rounded-lg">
-                          <span>→</span>
+                        <div className="sm:hidden flex items-center justify-center w-8 h-8 text-blue-600 bg-blue-50 rounded-lg flex-shrink-0">
+                          <span className="text-sm">→</span>
                         </div>
                       </div>
                     </div>
