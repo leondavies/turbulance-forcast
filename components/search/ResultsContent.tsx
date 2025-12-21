@@ -166,7 +166,7 @@ export function ResultsContent() {
                     router.push(`/forecast?${params.toString()}`)
                   }}
                 >
-                  <CardContent className="p-3 sm:p-4">
+                  <CardContent className="p-4 sm:p-4">
                     {(() => {
                       const dep = formatTimeParts(
                         flight.departure.scheduled,
@@ -184,7 +184,7 @@ export function ResultsContent() {
                       return (
                         <>
                           {/* Mobile layout */}
-                          <div className="sm:hidden flex items-center gap-3 min-w-0">
+                          <div className="sm:hidden flex items-start gap-4 min-w-0">
                             <div className="w-10 h-10 rounded-lg bg-white border flex items-center justify-center overflow-hidden flex-shrink-0">
                               {airlineLogoSrc(flight.airline) ? (
                                 <img
@@ -204,50 +204,52 @@ export function ResultsContent() {
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-baseline justify-between gap-3">
+                              <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                  <div className="text-base font-bold text-gray-900">
+                                  <div className="text-lg font-bold text-gray-900 leading-tight">
                                     {flight.flightNumber}
                                   </div>
-                                  <div className="text-xs text-gray-600 truncate">
+                                  <div className="text-sm text-gray-600 truncate">
                                     {flight.airline.name}
                                   </div>
                                 </div>
 
-                                <div className="flex items-center justify-center w-9 h-9 text-blue-600 bg-blue-50 rounded-lg flex-shrink-0">
-                                  <span className="text-base">→</span>
+                                <div className="flex items-center justify-center w-10 h-10 text-blue-600 bg-blue-50 rounded-xl flex-shrink-0">
+                                  <span className="text-lg">→</span>
                                 </div>
                               </div>
 
-                              <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-                                <div className="text-left">
-                                  <div className="font-bold text-gray-900 whitespace-nowrap">
-                                    <span className="text-sm">{dep.time}</span>
-                                    <span className="ml-1 text-[10px] font-semibold text-gray-500 align-top">
-                                      {dep.period}
-                                    </span>
+                              <div className="mt-3 pt-3 border-t border-gray-100">
+                                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                                  <div className="text-left">
+                                    <div className="font-bold text-gray-900 whitespace-nowrap tabular-nums">
+                                      <span className="text-base">{dep.time}</span>
+                                      <span className="ml-1 text-xs font-semibold text-gray-500 align-top">
+                                        {dep.period}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 uppercase font-medium">
+                                      {origin}
+                                    </div>
                                   </div>
-                                  <div className="text-[11px] text-gray-500 uppercase font-medium">
-                                    {origin}
-                                  </div>
-                                </div>
 
-                                <div className="text-center px-1">
-                                  <div className="text-gray-400 text-xs leading-none">✈</div>
-                                  <div className="mt-1 text-[11px] text-gray-500 whitespace-nowrap">
-                                    {duration}
+                                  <div className="text-center px-1">
+                                    <div className="text-gray-400 text-sm leading-none">✈</div>
+                                    <div className="mt-1 text-xs text-gray-500 whitespace-nowrap">
+                                      {duration}
+                                    </div>
                                   </div>
-                                </div>
 
-                                <div className="text-right">
-                                  <div className="font-bold text-gray-900 whitespace-nowrap">
-                                    <span className="text-sm">{arr.time}</span>
-                                    <span className="ml-1 text-[10px] font-semibold text-gray-500 align-top">
-                                      {arr.period}
-                                    </span>
-                                  </div>
-                                  <div className="text-[11px] text-gray-500 uppercase font-medium">
-                                    {destination}
+                                  <div className="text-right">
+                                    <div className="font-bold text-gray-900 whitespace-nowrap tabular-nums">
+                                      <span className="text-base">{arr.time}</span>
+                                      <span className="ml-1 text-xs font-semibold text-gray-500 align-top">
+                                        {arr.period}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-gray-500 uppercase font-medium">
+                                      {destination}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
