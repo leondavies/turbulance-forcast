@@ -4,23 +4,58 @@ import Script from "next/script";
 import { Suspense } from "react";
 import GtmPageView from "@/components/analytics/GtmPageView";
 import ConsentBanner from "@/components/analytics/ConsentBanner";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TurbCast - Flight Turbulence Forecast",
-  description: "Real-time turbulence forecasts for your flight. Get accurate turbulence predictions along your exact route with live NOAA weather data.",
-  keywords: "turbulence forecast, flight turbulence, turbcast, aviation weather, flight weather, turbulence prediction",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "TurbCast — Flight turbulence forecast",
+    template: "%s | TurbCast",
+  },
+  description:
+    "Check expected turbulence for your flight route using live aviation weather data. Clear, calm forecasts to help you feel more prepared before you fly.",
+  applicationName: "TurbCast",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "TurbCast - Flight Turbulence Forecast",
-    description: "Real-time turbulence forecasts for your flight",
-    url: "https://turbcast.com",
+    title: "TurbCast — Flight turbulence forecast",
+    description:
+      "Check expected turbulence for your flight route using live aviation weather data.",
+    url: SITE_URL,
     siteName: "TurbCast",
     type: "website",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "TurbCast — Flight turbulence forecast",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TurbCast - Flight Turbulence Forecast",
-    description: "Real-time turbulence forecasts for your flight",
+    title: "TurbCast — Flight turbulence forecast",
+    description:
+      "Check expected turbulence for your flight route using live aviation weather data.",
+    images: ["/twitter-image"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 

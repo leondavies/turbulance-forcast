@@ -2,10 +2,31 @@ import { FlightSearchForm } from '@/components/search/FlightSearchForm'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/badge'
 import { Plane, CloudRain, MapPin, TrendingUp, Shield, Clock } from 'lucide-react'
+import { JsonLd } from "@/components/seo/JsonLd"
+import { SITE_URL } from "@/lib/site"
+import { TOP_ROUTES, toRouteSlug } from "@/lib/seo/topRoutes"
+import Link from "next/link"
 
 export default function Home() {
   return (
     <div className="min-h-screen">
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "TurbCast",
+            url: SITE_URL,
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            name: "TurbCast",
+            url: SITE_URL,
+            logo: `${SITE_URL}/opengraph-image`,
+          },
+        ]}
+      />
       {/* Hero Section */}
       <section className="relative overflow-hidden py-24 md:py-32">
         {/* Background Image */}
@@ -42,13 +63,13 @@ export default function Home() {
 
             <div className="flex flex-wrap justify-center gap-3">
               <Badge className="bg-white/10 backdrop-blur-sm text-white" variant="outline">
-                ⚡ Live Updates
+                Live updates
               </Badge>
               <Badge className="bg-white/10 backdrop-blur-sm text-white" variant="outline">
-                🌍 6,000+ Airports
+                6,000+ airports
               </Badge>
               <Badge className="bg-white/10 backdrop-blur-sm text-white" variant="outline">
-                📊 Official NOAA Data
+                Official aviation weather data
               </Badge>
             </div>
           </div>
@@ -69,6 +90,38 @@ export default function Home() {
               <FlightSearchForm />
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      {/* Popular Routes (internal linking for SEO discovery) */}
+      <section className="py-16 bg-white">
+        <div className="container px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl text-center mb-10">
+            <h2 className="text-3xl font-bold tracking-tight mb-3">
+              Popular turbulence forecasts
+            </h2>
+            <p className="text-muted-foreground">
+              Browse route pages, then use the flight search to generate a detailed forecast.
+            </p>
+          </div>
+
+          <div className="mx-auto max-w-4xl grid gap-3 sm:grid-cols-2">
+            {TOP_ROUTES.slice(0, 10).map((r) => {
+              const slug = toRouteSlug(r.origin, r.destination)
+              return (
+                <Link
+                  key={slug}
+                  href={`/routes/${slug}`}
+                  className="flex items-center justify-between rounded-xl border bg-white px-4 py-3 hover:bg-muted/30 transition-colours"
+                >
+                  <span className="font-semibold text-gray-900">
+                    {r.origin} → {r.destination}
+                  </span>
+                  <span className="text-sm text-blue-600 font-medium">View</span>
+                </Link>
+              )
+            })}
+          </div>
         </div>
       </section>
 

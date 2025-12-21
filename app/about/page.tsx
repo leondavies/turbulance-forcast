@@ -1,4 +1,21 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
+import type { Metadata } from "next"
+import { SITE_URL } from "@/lib/site"
+
+export const metadata: Metadata = {
+  title: "About TurbCast (how it works)",
+  description:
+    "Learn how TurbCast creates turbulence forecasts using aviation weather data, route calculations, and aircraft-specific adjustments.",
+  alternates: {
+    canonical: "/about",
+  },
+  openGraph: {
+    title: "About TurbCast (how it works)",
+    description:
+      "How TurbCast creates route-specific turbulence forecasts using aviation weather data.",
+    url: `${SITE_URL}/about`,
+  },
+}
 
 export default function About() {
   return (

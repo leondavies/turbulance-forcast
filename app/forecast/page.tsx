@@ -2,6 +2,21 @@ import { Suspense } from 'react'
 import { ForecastContent } from '@/components/forecast/ForecastContent'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Skeleton } from '@/components/ui/skeleton'
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Turbulence forecast",
+  description:
+    "Turbulence forecast for a selected flight. This page is generated from your query parameters.",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+}
 
 export default function ForecastPage() {
   return (
