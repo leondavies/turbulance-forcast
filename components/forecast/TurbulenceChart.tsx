@@ -132,7 +132,8 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Turbulence level legend - horizontal on mobile, vertical on desktop */}
         <div className="lg:w-24 flex-shrink-0">
-          <div className="flex lg:flex-col gap-2 lg:gap-0">
+          {/* On desktop, reverse the vertical order so it matches the chart bands (severe at top → smooth at bottom). */}
+          <div className="flex lg:flex-col-reverse gap-2 lg:gap-0">
             {levels.map((lvl) => {
               return (
                 <div
