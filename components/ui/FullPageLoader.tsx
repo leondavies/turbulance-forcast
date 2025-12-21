@@ -28,7 +28,7 @@ export function FullPageLoader({
   )
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white/80 backdrop-blur-sm dark:bg-gray-950/70">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-white dark:bg-gray-950">
       <div className="mx-auto flex w-full max-w-md flex-col items-center gap-4 px-6">
         {animationPosition === 'top' ? Animation : Copy}
         {animationPosition === 'top' ? Copy : Animation}

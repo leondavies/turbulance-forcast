@@ -55,7 +55,7 @@ export function ResultsContent() {
     fetchFlights()
   }, [origin, destination, date])
 
-  const formatTime = (date: Date, timezone?: string) => {
+  const formatTimeParts = (date: Date, timezone?: string) => {
     // AviationStack returns times in local timezone but formats them as UTC
     // So we extract the time components directly without timezone conversion
     const d = new Date(date)
@@ -65,8 +65,7 @@ export function ResultsContent() {
     // Convert to 12-hour format with AM/PM
     const period = hours24 >= 12 ? 'PM' : 'AM'
     const hours12 = hours24 % 12 || 12 // Convert 0 to 12 for midnight
-
-    return `${hours12}:${minutes} ${period}`
+    return { time: `${hours12}:${minutes}`, period }
   }
 
   const formatDuration = (dep: Date, arr: Date) => {
@@ -168,9 +167,9 @@ export function ResultsContent() {
                   }}
                 >
                   <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center justify-between gap-2 sm:gap-4">
+                    <div className="flex items-center justify-between gap-2 sm:gap-4 min-w-0">
                       {/* Left: Flight Number & Airline */}
-                      <div className="flex items-center gap-3 min-w-[140px] sm:min-w-[200px]">
+                      <div className="flex items-center gap-3 min-w-0 sm:min-w-[200px]">
                         <div className="w-10 h-10 rounded-lg bg-white border flex items-center justify-center overflow-hidden flex-shrink-0">
                           {airlineLogoSrc(flight.airline) ? (
                             <img
@@ -201,12 +200,23 @@ export function ResultsContent() {
                       </div>
 
                       {/* Center: Times and Duration */}
-                      <div className="flex-1 flex items-center justify-center gap-2 sm:gap-4 md:gap-6">
+                      <div className="flex-1 min-w-0 flex items-center justify-center gap-1 sm:gap-4 md:gap-6">
                         {/* Departure */}
                         <div className="text-center">
-                          <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
-                            {formatTime(flight.departure.scheduled, flight.origin.timezone)}
-                          </div>
+                          {(() => {
+                            const t = formatTimeParts(
+                              flight.departure.scheduled,
+                              flight.origin.timezone
+                            )
+                            return (
+                              <div className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 whitespace-nowrap">
+                                <span>{t.time}</span>
+                                <span className="ml-1 align-top text-[10px] sm:text-sm font-semibold text-gray-500">
+                                  {t.period}
+                                </span>
+                              </div>
+                            )
+                          })()}
                           <div className="text-xs text-gray-500 uppercase font-medium">
                             {origin}
                           </div>
@@ -222,9 +232,20 @@ export function ResultsContent() {
 
                         {/* Arrival */}
                         <div className="text-center">
-                          <div className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
-                            {formatTime(flight.arrival.scheduled, flight.destination.timezone)}
-                          </div>
+                          {(() => {
+                            const t = formatTimeParts(
+                              flight.arrival.scheduled,
+                              flight.destination.timezone
+                            )
+                            return (
+                              <div className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 whitespace-nowrap">
+                                <span>{t.time}</span>
+                                <span className="ml-1 align-top text-[10px] sm:text-sm font-semibold text-gray-500">
+                                  {t.period}
+                                </span>
+                              </div>
+                            )
+                          })()}
                           <div className="text-xs text-gray-500 uppercase font-medium">
                             {destination}
                           </div>
