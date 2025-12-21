@@ -130,22 +130,6 @@ export function FlightSearchForm() {
         </button>
       </div>
 
-      {/* Departure Date Info */}
-      <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-100">
-        <div className="flex items-center justify-center gap-3">
-          <span className="text-3xl">📅</span>
-          <div className="text-center">
-            <div className="text-sm font-medium text-gray-600">Searching flights departing</div>
-            <div className="text-2xl font-bold text-blue-700">
-              Today
-            </div>
-            <p className="text-xs text-gray-500 mt-2">
-              In the departure airport's local timezone
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Submit Button */}
       <div className="flex justify-center pt-4">
         <Button
@@ -166,12 +150,17 @@ export function FlightSearchForm() {
           ) : (
             <span className="flex items-center gap-3">
               <span>✈️</span>
-              Search Today's Flights
+              Search today’s flights
               <span>→</span>
             </span>
           )}
         </Button>
       </div>
+
+      {/* Helper text (keeps the UI calm and reduces visual noise) */}
+      <p className="text-center text-xs text-gray-500 -mt-2">
+        We currently search scheduled flights departing <strong>today</strong> (local time at your departure airport).
+      </p>
 
       {/* Info Text */}
       <p className="text-center text-sm text-gray-500">
