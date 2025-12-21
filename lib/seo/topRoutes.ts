@@ -1,4 +1,9 @@
 export type TopRoute = { origin: string; destination: string };
+export type TopRouteGroup = {
+  title: string;
+  description?: string;
+  routes: TopRoute[];
+};
 
 // Seed list for programmatic SEO.
 //
@@ -262,18 +267,72 @@ const LATAM: RoutePair[] = [
   ["EZE", "MIA"],
 ];
 
-// Compile list (ordered groups → ordered routes), then dedupe.
+export const TOP_ROUTE_GROUPS: TopRouteGroup[] = [
+  {
+    title: "Oceania",
+    description: "Australia, New Zealand, and trans‑Tasman corridors.",
+    routes: unique(both(OCEANIA_TRUNK)),
+  },
+  {
+    title: "North America",
+    description: "High-demand US domestic and US/Canada links.",
+    routes: unique([...both(US_TRUNK), ...both(CANADA_TRUNK)]),
+  },
+  {
+    title: "UK & Ireland",
+    description: "Popular routes involving London and Dublin.",
+    routes: unique(
+      both([
+        ["LHR", "AMS"],
+        ["LHR", "CDG"],
+        ["LHR", "FRA"],
+        ["LHR", "MUC"],
+        ["LHR", "DUB"],
+        ["LHR", "MAD"],
+        ["LHR", "BCN"],
+        ["LHR", "FCO"],
+        ["DUB", "LHR"],
+        // Transatlantic from UK/IE
+        ["LHR", "JFK"],
+        ["LHR", "EWR"],
+        ["LHR", "LAX"],
+        ["LHR", "SFO"],
+        ["LGW", "JFK"],
+        ["DUB", "JFK"],
+        ["DUB", "BOS"],
+      ])
+    ),
+  },
+  {
+    title: "Europe",
+    description: "Major intra‑Europe hubs and city pairs.",
+    routes: unique(both(EUROPE_TRUNK)),
+  },
+  {
+    title: "Asia‑Pacific",
+    description: "Key East Asia and South‑East Asia trunk routes.",
+    routes: unique(both(ASIA_PAC_TRUNK)),
+  },
+  {
+    title: "Middle East",
+    description: "Big connectors (DXB/DOH/RUH/JED) and links to Europe.",
+    routes: unique(both(MIDDLE_EAST)),
+  },
+  {
+    title: "Long-haul",
+    description: "Intercontinental corridors (US↔Asia, EU↔Asia, Oceania↔US/Asia/ME).",
+    routes: unique(both(LONG_HAUL)),
+  },
+  {
+    title: "Latin America",
+    description: "Major routes across Mexico and South America.",
+    routes: unique(both(LATAM)),
+  },
+];
+
+// Full list used for sitemap generation.
 export const TOP_ROUTES: TopRoute[] = unique([
-  ...both(OCEANIA_TRUNK),
-  ...both(US_TRUNK),
-  ...both(CANADA_TRUNK),
-  ...both(TRANSATLANTIC),
-  ...both(EUROPE_TRUNK),
-  ...both(MIDDLE_EAST),
-  ...both(ASIA_PAC_TRUNK),
-  ...both(LONG_HAUL),
-  ...both(LATAM),
-  // One-way additions can go here if needed:
+  ...TOP_ROUTE_GROUPS.flatMap((g) => g.routes),
   ...oneWay([]),
 ]);
 
