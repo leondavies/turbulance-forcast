@@ -199,7 +199,7 @@ export function ForecastContent() {
               <CardTitle className="text-2xl">Turbulence Forecast Chart</CardTitle>
               <CardDescription>Turbulence levels throughout your flight</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3 sm:p-6">
               <TurbulenceChart
                 forecast={forecast.forecast}
                 route={forecast.route}

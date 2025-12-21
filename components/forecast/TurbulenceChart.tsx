@@ -64,16 +64,61 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
   // Flight duration in hours
   const durationHours = Math.ceil(route.estimatedDuration / 60)
 
+  // Determine maximum turbulence level for warning banner
+  const maxTurbulenceLevel = forecast.reduce((max, point) => {
+    const levelPriority: Record<string, number> = {
+      'severe': 4,
+      'moderate': 3,
+      'light': 2,
+      'smooth': 1
+    }
+    const currentPriority = levelPriority[point.turbulence.level] || 0
+    const maxPriority = levelPriority[max] || 0
+    return currentPriority > maxPriority ? point.turbulence.level : max
+  }, 'smooth')
+
+  // Banner styling based on turbulence level
+  const bannerConfig: Record<string, { bg: string, border: string, text: string, icon: string, message: string }> = {
+    severe: {
+      bg: 'bg-red-50',
+      border: 'border-red-500',
+      text: 'text-red-900',
+      icon: '🔴',
+      message: 'Severe turbulence expected - fasten seatbelts'
+    },
+    moderate: {
+      bg: 'bg-orange-50',
+      border: 'border-orange-400',
+      text: 'text-orange-900',
+      icon: '⚠️',
+      message: 'Episodes of moderate turbulence, bumpy flight ahead'
+    },
+    light: {
+      bg: 'bg-yellow-50',
+      border: 'border-yellow-400',
+      text: 'text-yellow-900',
+      icon: '⚡',
+      message: 'Light turbulence possible, mostly smooth flight'
+    },
+    smooth: {
+      bg: 'bg-green-50',
+      border: 'border-green-400',
+      text: 'text-green-900',
+      icon: '✅',
+      message: 'Smooth flight conditions expected'
+    }
+  }
+
+  const banner = bannerConfig[maxTurbulenceLevel] || bannerConfig.smooth
+
   return (
-    <div className="relative bg-white rounded-xl">
+    <div className="relative bg-white rounded-xl overflow-hidden">
       {/* Warning banner */}
-      <div className="mb-4 flex items-center gap-3 p-3 sm:p-4 bg-orange-50 border-l-4 border-orange-400 rounded-lg">
-        <div className="text-xl sm:text-2xl">⚠️</div>
+      <div className={`mb-4 flex items-center gap-3 p-3 sm:p-4 ${banner.bg} border-l-4 ${banner.border} rounded-lg`}>
+        <div className="text-xl sm:text-2xl flex-shrink-0">{banner.icon}</div>
         <div>
-          <div className="font-semibold text-orange-900 text-sm sm:text-base">
-            {forecast.some(f => f.turbulence.level === 'moderate' || f.turbulence.level === 'severe')
-              ? 'Episodes of moderate turbulence, bumpy flight ahead'
-              : 'Smooth flight conditions expected'}
+          <div className={`font-semibold ${banner.text} text-sm sm:text-base`}>
+            {banner.message}
           </div>
         </div>
       </div>
@@ -81,31 +126,33 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
       {/* Chart container */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Turbulence level legend - horizontal on mobile, vertical on desktop */}
-        <div className="flex lg:flex-col gap-2 lg:gap-0 justify-center lg:justify-start lg:w-24 flex-shrink-0">
-          {levels.map((lvl) => {
-            return (
-              <div
-                key={lvl.level}
-                className="group cursor-pointer relative"
-              >
-                <div className="flex lg:flex-col items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div
-                    className="w-6 h-6 lg:w-8 lg:h-8 rounded"
-                    style={{ backgroundColor: lvl.color }}
-                  />
-                  <span className="text-xs font-medium text-gray-700 whitespace-nowrap">
-                    {lvl.label}
-                  </span>
-                </div>
+        <div className="flex lg:flex-col gap-1 sm:gap-2 lg:gap-0 justify-start lg:justify-start lg:w-24 flex-shrink-0 overflow-x-auto pb-2 lg:pb-0">
+          <div className="flex lg:flex-col gap-1 sm:gap-2 lg:gap-0 min-w-max lg:min-w-0">
+            {levels.map((lvl) => {
+              return (
+                <div
+                  key={lvl.level}
+                  className="group cursor-pointer relative"
+                >
+                  <div className="flex lg:flex-col items-center gap-1 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div
+                      className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 rounded flex-shrink-0"
+                      style={{ backgroundColor: lvl.color }}
+                    />
+                    <span className="text-xs font-medium text-gray-700 whitespace-nowrap">
+                      {lvl.label}
+                    </span>
+                  </div>
 
-                {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 lg:left-full lg:translate-x-0 lg:ml-4 top-full mt-2 lg:top-1/2 lg:-translate-y-1/2 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 text-sm">
-                  <div className="font-bold">{lvl.label} turbulence</div>
-                  <div className="text-xs">{lvl.desc}</div>
+                  {/* Tooltip */}
+                  <div className="absolute left-1/2 -translate-x-1/2 lg:left-full lg:translate-x-0 lg:ml-4 top-full mt-2 lg:top-1/2 lg:-translate-y-1/2 bg-gray-900 text-white px-3 py-2 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 text-sm">
+                    <div className="font-bold">{lvl.label} turbulence</div>
+                    <div className="text-xs">{lvl.desc}</div>
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
+          </div>
         </div>
 
         {/* Main chart */}
