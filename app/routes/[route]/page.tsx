@@ -153,10 +153,10 @@ export default async function RouteLandingPage({ params }: PageProps) {
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/#search"
+                  href={`/results?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`}
                   className="inline-flex items-center justify-center rounded-md bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-blue-700"
                 >
-                  Search flights
+                  Search today’s flights
                 </Link>
                 <Link
                   href="/faq"

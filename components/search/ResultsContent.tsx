@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import type { Flight } from '@/services/flight/types'
+import { airlineInitials, airlineLogoSrc } from '@/lib/airlines/logos'
 
 export function ResultsContent() {
   const searchParams = useSearchParams()
@@ -183,12 +184,33 @@ export function ResultsContent() {
                   <CardContent className="p-3 sm:p-4">
                     <div className="flex items-center justify-between gap-2 sm:gap-4">
                       {/* Left: Flight Number & Airline */}
-                      <div className="flex flex-col min-w-[80px] sm:min-w-[120px]">
-                        <div className="text-base sm:text-lg font-bold text-gray-900">
-                          {flight.flightNumber}
+                      <div className="flex items-center gap-3 min-w-[140px] sm:min-w-[200px]">
+                        <div className="w-10 h-10 rounded-lg bg-white border flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {airlineLogoSrc(flight.airline) ? (
+                            <img
+                              src={airlineLogoSrc(flight.airline)!}
+                              alt={`${flight.airline.name} logo`}
+                              className="w-full h-full object-contain p-1"
+                              loading="lazy"
+                              onError={(e) => {
+                                // Fallback to initials if logo is missing/unavailable.
+                                const target = e.currentTarget
+                                target.style.display = 'none'
+                              }}
+                            />
+                          ) : null}
+                          <span className="text-sm font-bold text-gray-700">
+                            {airlineInitials(flight.airline.name)}
+                          </span>
                         </div>
-                        <div className="text-xs sm:text-sm text-gray-600 truncate">
-                          {flight.airline.name}
+
+                        <div className="flex flex-col min-w-0">
+                          <div className="text-base sm:text-lg font-bold text-gray-900">
+                            {flight.flightNumber}
+                          </div>
+                          <div className="text-xs sm:text-sm text-gray-600 truncate">
+                            {flight.airline.name}
+                          </div>
                         </div>
                       </div>
 
