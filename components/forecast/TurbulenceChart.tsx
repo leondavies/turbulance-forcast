@@ -84,28 +84,28 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
       bg: 'bg-red-50',
       border: 'border-red-500',
       text: 'text-red-900',
-      icon: '🔴',
+      icon: '🤢',
       message: 'Severe turbulence expected - fasten seatbelts'
     },
     moderate: {
       bg: 'bg-orange-50',
       border: 'border-orange-400',
       text: 'text-orange-900',
-      icon: '⚠️',
+      icon: '😰',
       message: 'Episodes of moderate turbulence, bumpy flight ahead'
     },
     light: {
       bg: 'bg-yellow-50',
       border: 'border-yellow-400',
       text: 'text-yellow-900',
-      icon: '⚡',
+      icon: '😐',
       message: 'Light turbulence possible, mostly smooth flight'
     },
     smooth: {
       bg: 'bg-green-50',
       border: 'border-green-400',
       text: 'text-green-900',
-      icon: '✅',
+      icon: '😊',
       message: 'Smooth flight conditions expected'
     }
   }
