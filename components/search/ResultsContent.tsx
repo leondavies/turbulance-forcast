@@ -167,102 +167,173 @@ export function ResultsContent() {
                   }}
                 >
                   <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-center justify-between gap-2 sm:gap-4 min-w-0">
-                      {/* Left: Flight Number & Airline */}
-                      <div className="flex items-center gap-3 min-w-0 sm:min-w-[200px]">
-                        <div className="w-10 h-10 rounded-lg bg-white border flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {airlineLogoSrc(flight.airline) ? (
-                            <img
-                              src={airlineLogoSrc(flight.airline)!}
-                              alt={`${flight.airline.name} logo`}
-                              className="w-full h-full object-contain p-1"
-                              loading="lazy"
-                              onError={(e) => {
-                                // Fallback to initials if logo is missing/unavailable.
-                                const target = e.currentTarget
-                                target.style.display = 'none'
-                              }}
-                            />
-                          ) : null}
-                          <span className="text-sm font-bold text-gray-700">
-                            {airlineInitials(flight.airline.name)}
-                          </span>
-                        </div>
+                    {(() => {
+                      const dep = formatTimeParts(
+                        flight.departure.scheduled,
+                        flight.origin.timezone
+                      )
+                      const arr = formatTimeParts(
+                        flight.arrival.scheduled,
+                        flight.destination.timezone
+                      )
+                      const duration = formatDuration(
+                        flight.departure.scheduled,
+                        flight.arrival.scheduled
+                      )
 
-                        <div className="flex flex-col min-w-0">
-                          <div className="text-base sm:text-lg font-bold text-gray-900">
-                            {flight.flightNumber}
-                          </div>
-                          <div className="text-xs sm:text-sm text-gray-600 truncate">
-                            {flight.airline.name}
-                          </div>
-                        </div>
-                      </div>
+                      return (
+                        <>
+                          {/* Mobile layout */}
+                          <div className="sm:hidden flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-lg bg-white border flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {airlineLogoSrc(flight.airline) ? (
+                                <img
+                                  src={airlineLogoSrc(flight.airline)!}
+                                  alt={`${flight.airline.name} logo`}
+                                  className="w-full h-full object-contain p-1"
+                                  loading="lazy"
+                                  onError={(e) => {
+                                    const target = e.currentTarget
+                                    target.style.display = 'none'
+                                  }}
+                                />
+                              ) : null}
+                              <span className="text-sm font-bold text-gray-700">
+                                {airlineInitials(flight.airline.name)}
+                              </span>
+                            </div>
 
-                      {/* Center: Times and Duration */}
-                      <div className="flex-1 min-w-0 flex items-center justify-center gap-1 sm:gap-4 md:gap-6">
-                        {/* Departure */}
-                        <div className="text-center">
-                          {(() => {
-                            const t = formatTimeParts(
-                              flight.departure.scheduled,
-                              flight.origin.timezone
-                            )
-                            return (
-                              <div className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 whitespace-nowrap">
-                                <span>{t.time}</span>
-                                <span className="ml-1 align-top text-[10px] sm:text-sm font-semibold text-gray-500">
-                                  {t.period}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-baseline justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="text-base font-bold text-gray-900">
+                                    {flight.flightNumber}
+                                  </div>
+                                  <div className="text-xs text-gray-600 truncate">
+                                    {flight.airline.name}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-center w-9 h-9 text-blue-600 bg-blue-50 rounded-lg flex-shrink-0">
+                                  <span className="text-base">→</span>
+                                </div>
+                              </div>
+
+                              <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                                <div className="text-left">
+                                  <div className="font-bold text-gray-900 whitespace-nowrap">
+                                    <span className="text-sm">{dep.time}</span>
+                                    <span className="ml-1 text-[10px] font-semibold text-gray-500 align-top">
+                                      {dep.period}
+                                    </span>
+                                  </div>
+                                  <div className="text-[11px] text-gray-500 uppercase font-medium">
+                                    {origin}
+                                  </div>
+                                </div>
+
+                                <div className="text-center px-1">
+                                  <div className="text-gray-400 text-xs leading-none">✈</div>
+                                  <div className="mt-1 text-[11px] text-gray-500 whitespace-nowrap">
+                                    {duration}
+                                  </div>
+                                </div>
+
+                                <div className="text-right">
+                                  <div className="font-bold text-gray-900 whitespace-nowrap">
+                                    <span className="text-sm">{arr.time}</span>
+                                    <span className="ml-1 text-[10px] font-semibold text-gray-500 align-top">
+                                      {arr.period}
+                                    </span>
+                                  </div>
+                                  <div className="text-[11px] text-gray-500 uppercase font-medium">
+                                    {destination}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Tablet/Desktop layout */}
+                          <div className="hidden sm:flex items-center justify-between gap-4 min-w-0">
+                            {/* Left: Flight Number & Airline */}
+                            <div className="flex items-center gap-3 min-w-[200px]">
+                              <div className="w-10 h-10 rounded-lg bg-white border flex items-center justify-center overflow-hidden flex-shrink-0">
+                                {airlineLogoSrc(flight.airline) ? (
+                                  <img
+                                    src={airlineLogoSrc(flight.airline)!}
+                                    alt={`${flight.airline.name} logo`}
+                                    className="w-full h-full object-contain p-1"
+                                    loading="lazy"
+                                    onError={(e) => {
+                                      const target = e.currentTarget
+                                      target.style.display = 'none'
+                                    }}
+                                  />
+                                ) : null}
+                                <span className="text-sm font-bold text-gray-700">
+                                  {airlineInitials(flight.airline.name)}
                                 </span>
                               </div>
-                            )
-                          })()}
-                          <div className="text-xs text-gray-500 uppercase font-medium">
-                            {origin}
-                          </div>
-                        </div>
 
-                        {/* Arrow & Duration */}
-                        <div className="flex flex-col items-center justify-center px-1 sm:px-2">
-                          <div className="text-gray-400 text-sm mb-1">✈</div>
-                          <div className="text-xs text-gray-500 whitespace-nowrap">
-                            {formatDuration(flight.departure.scheduled, flight.arrival.scheduled)}
-                          </div>
-                        </div>
-
-                        {/* Arrival */}
-                        <div className="text-center">
-                          {(() => {
-                            const t = formatTimeParts(
-                              flight.arrival.scheduled,
-                              flight.destination.timezone
-                            )
-                            return (
-                              <div className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 whitespace-nowrap">
-                                <span>{t.time}</span>
-                                <span className="ml-1 align-top text-[10px] sm:text-sm font-semibold text-gray-500">
-                                  {t.period}
-                                </span>
+                              <div className="flex flex-col min-w-0">
+                                <div className="text-lg font-bold text-gray-900">
+                                  {flight.flightNumber}
+                                </div>
+                                <div className="text-sm text-gray-600 truncate">
+                                  {flight.airline.name}
+                                </div>
                               </div>
-                            )
-                          })()}
-                          <div className="text-xs text-gray-500 uppercase font-medium">
-                            {destination}
-                          </div>
-                        </div>
-                      </div>
+                            </div>
 
-                      {/* Right: View Forecast Button */}
-                      <div className="flex items-center flex-shrink-0">
-                        <div className="hidden sm:flex items-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
-                          View Forecast
-                          <span>→</span>
-                        </div>
-                        <div className="sm:hidden flex items-center justify-center w-8 h-8 text-blue-600 bg-blue-50 rounded-lg flex-shrink-0">
-                          <span className="text-sm">→</span>
-                        </div>
-                      </div>
-                    </div>
+                            {/* Center: Times and Duration */}
+                            <div className="flex-1 min-w-0 flex items-center justify-center gap-4 md:gap-6">
+                              {/* Departure */}
+                              <div className="text-center">
+                                <div className="text-xl md:text-2xl font-bold text-gray-900 whitespace-nowrap">
+                                  <span>{dep.time}</span>
+                                  <span className="ml-1 align-top text-sm font-semibold text-gray-500">
+                                    {dep.period}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-500 uppercase font-medium">
+                                  {origin}
+                                </div>
+                              </div>
+
+                              {/* Arrow & Duration */}
+                              <div className="flex flex-col items-center justify-center px-2">
+                                <div className="text-gray-400 text-sm mb-1">✈</div>
+                                <div className="text-xs text-gray-500 whitespace-nowrap">
+                                  {duration}
+                                </div>
+                              </div>
+
+                              {/* Arrival */}
+                              <div className="text-center">
+                                <div className="text-xl md:text-2xl font-bold text-gray-900 whitespace-nowrap">
+                                  <span>{arr.time}</span>
+                                  <span className="ml-1 align-top text-sm font-semibold text-gray-500">
+                                    {arr.period}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-500 uppercase font-medium">
+                                  {destination}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Right: View Forecast Button */}
+                            <div className="flex items-center flex-shrink-0">
+                              <div className="flex items-center gap-2 text-sm font-medium text-blue-600 bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
+                                View Forecast
+                                <span>→</span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )
+                    })()}
                   </CardContent>
                 </Card>
               ))}
