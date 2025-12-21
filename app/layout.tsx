@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Header, Footer } from "@/components/layout";
 import Script from "next/script";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
 import GtmPageView from "@/components/analytics/GtmPageView";
 import ConsentBanner from "@/components/analytics/ConsentBanner";
 import { SITE_URL } from "@/lib/site";
@@ -97,6 +98,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           {children}
         </main>
         <Footer />
+        <Analytics />
       </body>
     </html>
   );
