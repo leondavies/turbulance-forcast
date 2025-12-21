@@ -79,33 +79,37 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
   }, 'smooth')
 
   // Banner styling based on turbulence level
-  const bannerConfig: Record<string, { bg: string, border: string, text: string, icon: string, message: string }> = {
+  const bannerConfig: Record<string, { bg: string, border: string, text: string, icon: string, iconColor: string, message: string }> = {
     severe: {
       bg: 'bg-red-50',
       border: 'border-red-500',
       text: 'text-red-900',
-      icon: '🤢',
+      icon: '●',
+      iconColor: 'text-red-500',
       message: 'Severe turbulence expected - fasten seatbelts'
     },
     moderate: {
       bg: 'bg-orange-50',
       border: 'border-orange-400',
       text: 'text-orange-900',
-      icon: '😰',
+      icon: '●',
+      iconColor: 'text-orange-400',
       message: 'Episodes of moderate turbulence, bumpy flight ahead'
     },
     light: {
       bg: 'bg-yellow-50',
       border: 'border-yellow-400',
       text: 'text-yellow-900',
-      icon: '😐',
+      icon: '●',
+      iconColor: 'text-yellow-400',
       message: 'Light turbulence possible, mostly smooth flight'
     },
     smooth: {
       bg: 'bg-green-50',
       border: 'border-green-400',
       text: 'text-green-900',
-      icon: '😊',
+      icon: '●',
+      iconColor: 'text-green-400',
       message: 'Smooth flight conditions expected'
     }
   }
@@ -116,7 +120,7 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
     <div className="relative bg-white rounded-xl overflow-hidden">
       {/* Warning banner */}
       <div className={`mb-4 flex items-center gap-3 p-3 sm:p-4 ${banner.bg} border-l-4 ${banner.border} rounded-lg`}>
-        <div className="text-xl sm:text-2xl flex-shrink-0">{banner.icon}</div>
+        <div className={`text-xl sm:text-2xl flex-shrink-0 ${banner.iconColor}`}>{banner.icon}</div>
         <div>
           <div className={`font-semibold ${banner.text} text-sm sm:text-base`}>
             {banner.message}
