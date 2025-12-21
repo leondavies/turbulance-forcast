@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import type { Flight } from '@/services/flight/types'
 import { airlineInitials, airlineLogoSrc } from '@/lib/airlines/logos'
+import { FullPageLoader } from '@/components/ui/FullPageLoader'
 
 export function ResultsContent() {
   const searchParams = useSearchParams()
@@ -76,22 +77,7 @@ export function ResultsContent() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-        <Card className="w-full max-w-md">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-              <p className="text-lg font-medium text-gray-700">Searching for flights...</p>
-              <div className="w-full space-y-2 mt-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    return <FullPageLoader label="Searching for flights..." sublabel="This usually takes a few seconds." />
   }
 
   if (error) {
