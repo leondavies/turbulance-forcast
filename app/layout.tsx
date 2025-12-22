@@ -1,37 +1,20 @@
 import type { Metadata } from "next";
 import { Header, Footer } from "@/components/layout";
-import Script from "next/script";
-import { Suspense } from "react";
-import { Analytics } from "@vercel/analytics/next";
-import { ScrollManager } from "@/components/layout/ScrollManager";
-import GtmPageView from "@/components/analytics/GtmPageView";
-import ConsentBanner from "@/components/analytics/ConsentBanner";
-import { SITE_URL } from "@/lib/site";
+import { JsonLd } from "@/components/seo/JsonLd";
 import "./globals.css";
+
+const SITE_URL = "https://www.turbcast.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "TurbCast — Flight turbulence forecast",
+    default: "TurbCast - Real-Time Flight Turbulence Forecast",
     template: "%s | TurbCast",
   },
-  description:
-    "Check expected turbulence for your flight route using live aviation weather data. Clear, calm forecasts to help you feel more prepared before you fly.",
-  applicationName: "TurbCast",
-  manifest: "/manifest.webmanifest",
-  icons: {
-    icon: [
-      { url: "/turbcast-favicon-square.png", type: "image/png", sizes: "552x552" },
-    ],
-    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
-  },
-  alternates: {
-    canonical: "/",
-  },
+  description: "Get real-time turbulence forecasts for your flight using official NOAA weather data. Know before you fly with accurate EDR predictions, pilot reports, and route-specific turbulence levels.",
   openGraph: {
-    title: "TurbCast — Flight turbulence forecast",
-    description:
-      "Check expected turbulence for your flight route using live aviation weather data.",
+    title: "TurbCast - Real-Time Flight Turbulence Forecast",
+    description: "Real-time turbulence forecasts for your flight using official NOAA weather data",
     url: SITE_URL,
     siteName: "TurbCast",
     type: "website",
@@ -40,27 +23,43 @@ export const metadata: Metadata = {
         url: "/opengraph.png",
         width: 1200,
         height: 630,
-        alt: "TurbCast — Flight turbulence forecast",
+        alt: "TurbCast - Flight Turbulence Forecast",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TurbCast — Flight turbulence forecast",
-    description:
-      "Check expected turbulence for your flight route using live aviation weather data.",
+    title: "TurbCast - Real-Time Flight Turbulence Forecast",
+    description: "Real-time turbulence forecasts for your flight",
     images: ["/opengraph.png"],
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-      "max-video-preview": -1,
+  alternates: {
+    canonical: "/",
+  },
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "TurbCast",
+  url: SITE_URL,
+  logo: `${SITE_URL}/opengraph.png`,
+  description: "Real-time flight turbulence forecasts using official NOAA weather data",
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "TurbCast",
+  url: SITE_URL,
+  description: "Get real-time turbulence forecasts for your flight",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${SITE_URL}/results?origin={origin}&destination={destination}`,
     },
+    "query-input": "required name=origin, required name=destination",
   },
 };
 
@@ -69,43 +68,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
-  const isProd = process.env.NODE_ENV === "production";
-
   return (
     <html lang="en">
+      <head>
+        <JsonLd data={organizationSchema} />
+        <JsonLd data={websiteSchema} />
+      </head>
       <body className="antialiased flex flex-col min-h-screen">
-        <Suspense fallback={null}>
-          <ScrollManager />
-        </Suspense>
-        {gtmId && isProd ? (
-          <>
-            <Script id="gtm" strategy="afterInteractive">
-              {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','${gtmId}');`}
-            </Script>
-            <noscript
-              dangerouslySetInnerHTML={{
-                __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId}" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
-              }}
-            />
-          </>
-        ) : null}
         <Header />
-        {gtmId && isProd ? (
-          <Suspense fallback={null}>
-            <GtmPageView />
-          </Suspense>
-        ) : null}
-        {gtmId && isProd ? <ConsentBanner /> : null}
         <main className="flex-1">
           {children}
         </main>
         <Footer />
-        <Analytics />
       </body>
     </html>
   );
