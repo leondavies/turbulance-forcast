@@ -3,6 +3,7 @@ import { Header, Footer } from "@/components/layout";
 import Script from "next/script";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
+import { ScrollManager } from "@/components/layout/ScrollManager";
 import GtmPageView from "@/components/analytics/GtmPageView";
 import ConsentBanner from "@/components/analytics/ConsentBanner";
 import { SITE_URL } from "@/lib/site";
@@ -71,6 +72,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased flex flex-col min-h-screen">
+        <Suspense fallback={null}>
+          <ScrollManager />
+        </Suspense>
         {gtmId && isProd ? (
           <>
             <Script id="gtm" strategy="afterInteractive">
