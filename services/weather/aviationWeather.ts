@@ -1,4 +1,5 @@
 import type { RoutePoint } from '../route/greatCircle'
+import { sampleWafsModelAlongRoute } from './wafsModel'
 
 export type TurbulenceLevel = 'smooth' | 'light' | 'moderate' | 'severe'
 
@@ -33,7 +34,20 @@ export interface ForecastMetadata {
   /** How much live/official data is available to support the forecast */
   dataQuality: 'high' | 'medium' | 'low'
   lastUpdated: Date
+  /**
+   * True only when we could not fetch model guidance (WAFS) *and* could not fetch reports/advisories,
+   * so we generated a heuristic baseline instead.
+   */
   usingFallback: boolean
+  /** When true, we used NOAA model guidance but could not fetch live reports/advisories for this run. */
+  modelOnly?: boolean
+  /** Model metadata when available. */
+  model?: {
+    source: 'noaa-awc-wafs'
+    run: string
+    forecastHour: number
+    levelMb: number
+  }
 }
 
 export interface ForecastResult {
@@ -50,8 +64,20 @@ export async function generateTurbulenceForecast(
   waypoints: RoutePoint[],
   opts?: { departureTime?: Date; aircraftIata?: string; durationMinutes?: number }
 ): Promise<ForecastResult> {
+  // Always try to fetch model guidance first. If this fails, we may fall back to heuristic.
+  let wafs: Awaited<ReturnType<typeof sampleWafsModelAlongRoute>> | null = null
   try {
-    // Fetch turbulence data from Aviation Weather Center
+    wafs = await sampleWafsModelAlongRoute(waypoints, {
+      departureTime: opts?.departureTime,
+      durationMinutes: opts?.durationMinutes,
+    })
+  } catch (error) {
+    console.error('Error fetching WAFS model guidance:', error)
+    wafs = null
+  }
+
+  try {
+    // Fetch reports/advisories from Aviation Weather Center (PIREP/SIGMET/AIRMET)
     const turbulenceData = await fetchAviationWeatherData(waypoints)
 
     const segments = waypoints.map((point, index) => {
@@ -60,7 +86,9 @@ export async function generateTurbulenceForecast(
         turbulenceData,
         index,
         waypoints.length,
-        opts
+        opts,
+        wafs?.edrByPoint[index],
+        wafs?.windSpeedKtByPoint[index]
       )
       return {
         ...point,
@@ -88,12 +116,41 @@ export async function generateTurbulenceForecast(
         airmetCount,
         dataQuality,
         lastUpdated: new Date(),
-        usingFallback: false
-      }
+        usingFallback: !wafs,
+        modelOnly: false,
+        model: wafs?.model,
+      },
     }
   } catch (error) {
     console.error('Error fetching aviation weather data:', error)
-    // Fallback to calculated data based on atmospheric conditions
+
+    if (wafs) {
+      // Model guidance is available; treat this as "model-only" (no live reports/advisories fetched).
+      const segments = waypoints.map((point, index) => ({
+        ...point,
+        turbulence: calculateTurbulenceLevel(
+          wafs.edrByPoint[index] ?? 0.05,
+          point,
+          wafs.windSpeedKtByPoint[index]
+        ),
+      }))
+
+      return {
+        segments,
+        metadata: {
+          pirepCount: 0,
+          sigmetCount: 0,
+          airmetCount: 0,
+          dataQuality: 'low',
+          lastUpdated: new Date(),
+          usingFallback: false,
+          modelOnly: true,
+          model: wafs.model,
+        },
+      }
+    }
+
+    // Last-resort heuristic fallback (no model + no reports/advisories).
     const segments = waypoints.map((point, index) => ({
       ...point,
       turbulence: calculateAtmosphericTurbulence(point, index, waypoints.length),
@@ -107,8 +164,10 @@ export async function generateTurbulenceForecast(
         airmetCount: 0,
         dataQuality: 'low',
         lastUpdated: new Date(),
-        usingFallback: true
-      }
+        usingFallback: true,
+        modelOnly: true,
+        model: undefined,
+      },
     }
   }
 }
@@ -211,9 +270,12 @@ function calculateTurbulenceForPoint(
   weatherData: AviationWeatherData,
   index: number,
   total: number,
-  opts?: { departureTime?: Date; aircraftIata?: string; durationMinutes?: number }
+  opts?: { departureTime?: Date; aircraftIata?: string; durationMinutes?: number },
+  wafsEdr?: number,
+  wafsWindSpeedKt?: number
 ): TurbulenceData {
-  let baseEDR = 0.05 // Start with smooth conditions
+  // Start with model guidance if available, otherwise a smooth baseline.
+  let baseEDR = typeof wafsEdr === 'number' ? wafsEdr : 0.05
 
   // Check for turbulence reports in the area (within ~50nm)
   const nearbyReports = weatherData.pireps.filter((pirep: any) => {
@@ -255,26 +317,13 @@ function calculateTurbulenceForPoint(
     })
   }
 
-  // Time-of-day diurnal adjustment (afternoon convection more likely)
-  if (opts?.departureTime) {
-    // Approximate local hour at this waypoint by adding progress-based minutes
-    // along the route to the departure time.
-    const minutesProgress = (opts.durationMinutes || 0) * (index / Math.max(1, total - 1))
-    const waypointTime = new Date(opts.departureTime.getTime() + minutesProgress * 60 * 1000)
-    const localHour = waypointTime.getUTCHours() // TODO: convert to local with tz data if available
-    const diurnal =
-      localHour >= 12 && localHour <= 20
-        ? 0.07 + seededRandom(point.lat, point.lon, index, 999) * 0.06
-        : 0
-    baseEDR = Math.max(baseEDR, 0.05 + diurnal)
-  }
-
-  // If no real data, calculate based on atmospheric conditions
-  if (baseEDR === 0.05) {
+  // If we *still* have only baseline (no model + no reports/advisories),
+  // fall back to a heuristic atmospheric estimate.
+  if (baseEDR === 0.05 && typeof wafsEdr !== 'number') {
     baseEDR = calculateAtmosphericEDR(point, index, total)
   }
 
-  return calculateTurbulenceLevel(baseEDR, point)
+  return calculateTurbulenceLevel(baseEDR, point, wafsWindSpeedKt)
 }
 
 function calculateAtmosphericTurbulence(point: RoutePoint, index: number, total: number): TurbulenceData {
@@ -317,7 +366,7 @@ function calculateAtmosphericEDR(point: RoutePoint, index: number, total: number
   return Math.min(edr, 0.65)
 }
 
-function calculateTurbulenceLevel(edr: number, point: RoutePoint): TurbulenceData {
+function calculateTurbulenceLevel(edr: number, point: RoutePoint, windSpeedOverrideKt?: number): TurbulenceData {
   // EDR thresholds based on FAA/ICAO standards
   let level: TurbulenceLevel
 
@@ -334,7 +383,10 @@ function calculateTurbulenceLevel(edr: number, point: RoutePoint): TurbulenceDat
   // Generate realistic wind data based on altitude
   // Wind speeds generally increase with altitude
   const baseWind = point.altitude / 400 // Rough approximation
-  const windSpeed = Math.round(baseWind + (seededRandom(point.lat, point.lon, 0, 6) - 0.5) * 40)
+  const windSpeed =
+    typeof windSpeedOverrideKt === 'number'
+      ? Math.round(windSpeedOverrideKt)
+      : Math.round(baseWind + (seededRandom(point.lat, point.lon, 0, 6) - 0.5) * 40)
 
   // Wind direction varies by hemisphere and altitude
   // Northern hemisphere: generally westerly at altitude

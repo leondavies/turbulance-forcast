@@ -9,13 +9,21 @@ interface DataSourcesProps {
     dataQuality: 'high' | 'medium' | 'low'
     lastUpdated: string
     usingFallback: boolean
+    modelOnly?: boolean
+    model?: {
+      source: 'noaa-awc-wafs'
+      run: string
+      forecastHour: number
+      levelMb: number
+    }
   }
   cached?: boolean
 }
 
 export function DataSources({ metadata, cached }: DataSourcesProps) {
-  const { pirepCount, sigmetCount, airmetCount, dataQuality, lastUpdated, usingFallback } = metadata
+  const { pirepCount, sigmetCount, airmetCount, dataQuality, lastUpdated, usingFallback, modelOnly, model } = metadata
   const hasAnyReports = pirepCount > 0 || sigmetCount > 0 || airmetCount > 0
+  const hasModelGuidance = !usingFallback && !!model
 
   // Calculate how long ago the data was updated
   const minutesAgo = Math.round((Date.now() - new Date(lastUpdated).getTime()) / 60000)
@@ -27,36 +35,44 @@ export function DataSources({ metadata, cached }: DataSourcesProps) {
   const qualityColor = {
     high: 'bg-green-100 text-green-800 border-green-200',
     medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    low: 'bg-orange-100 text-orange-800 border-orange-200'
+    // “Low” here mostly means “few/no recent reports”, which is normal on many routes (especially oceanic).
+    low: 'bg-gray-100 text-gray-800 border-gray-200'
   }[dataQuality]
 
   const qualityIcon = {
     high: '🟢',
     medium: '🟡',
-    low: '🟠'
+    low: '⚪'
   }[dataQuality]
 
-  const supportLabel = {
-    high: 'Strong',
-    medium: 'Some',
-    low: 'Limited',
-  }[dataQuality]
+  // NOTE: This label reflects *report/advisory support*, not whether the model guidance exists.
+  const supportLabel = dataQuality === 'high'
+    ? 'Strong reports'
+    : dataQuality === 'medium'
+      ? 'Some reports'
+      : 'No recent reports'
+
+  const reportsSummary = dataQuality === 'high'
+    ? 'Recent reports/advisories along this corridor'
+    : dataQuality === 'medium'
+      ? 'Some reports/advisories near this corridor'
+      : 'No recent reports near this corridor (common)'
 
   const supportSummary = usingFallback
-    ? 'Model-based forecast (reports unavailable)'
-    : dataQuality === 'high'
-      ? 'Strong support from recent reports/advisories'
-      : dataQuality === 'medium'
-        ? 'Some support from recent reports/advisories'
-        : 'No recent reports found near this route'
+    ? 'Baseline forecast (model guidance unavailable)'
+    : hasModelGuidance
+      ? `Forecast source: NOAA WAFS model guidance • ${reportsSummary}`
+      : reportsSummary
 
   const supportDetail = usingFallback
-    ? "Forecast generated from atmospheric models. Recent pilot reports/advisories weren’t available at the time of this forecast."
+    ? 'Forecast generated from a baseline heuristic because NOAA model guidance was unavailable for this run.'
+    : modelOnly
+      ? "Forecast generated from NOAA WAFS model guidance. Live pilot reports/advisories weren’t available at the time of this forecast."
     : dataQuality === 'high'
       ? 'Multiple recent reports/advisories support this route.'
       : dataQuality === 'medium'
         ? 'Some reports/advisories were available near this route.'
-        : "No recent reports were found near this route right now. That can mean conditions are uneventful — or simply that fewer reports were available."
+        : "No recent reports were found near this route right now. This is very common — especially over oceans and quieter airspace. It doesn’t necessarily mean anything is wrong with the forecast; it just means there’s less recent real-world reporting to cross-check against."
 
   return (
     <Card>
@@ -180,7 +196,16 @@ export function DataSources({ metadata, cached }: DataSourcesProps) {
               {usingFallback && (
                 <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-md border border-yellow-100">
                   <span>⚠️</span>
-                  <span>Model-based forecast (recent reports/advisories unavailable for this run)</span>
+                  <span>Baseline forecast (NOAA model guidance unavailable for this run)</span>
+                </div>
+              )}
+              {!usingFallback && modelOnly && (
+                <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-md border border-blue-100">
+                  <span>ℹ️</span>
+                  <span>
+                    Model-only forecast from NOAA WAFS (live reports/advisories unavailable for this run)
+                    {model ? ` — ${model.run} F${String(model.forecastHour).padStart(2, '0')} @ ${model.levelMb}mb` : ''}
+                  </span>
                 </div>
               )}
               {!usingFallback && hasAnyReports && (
@@ -193,7 +218,7 @@ export function DataSources({ metadata, cached }: DataSourcesProps) {
                 <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md border border-gray-200">
                   <span>ℹ️</span>
                   <span>
-                    No recent reports were found near this route right now. That can mean conditions are uneventful — or simply that fewer reports were available.
+                    No recent reports were found near this route right now (common). Your forecast still uses NOAA model guidance.
                   </span>
                 </div>
               )}
