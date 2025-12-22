@@ -40,7 +40,7 @@ export default function Home() {
           }}
         />
         {/* Dark Overlay for Text Readability */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-blue-900/80 via-blue-800/75 to-purple-900/80" />
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-brand-navy/85 via-brand-blue/70 to-brand-navy/85" />
 
         <div className="container relative z-10 px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-4xl text-center">
@@ -111,7 +111,7 @@ export default function Home() {
           <div className="grid gap-8 md:grid-cols-3">
             <Card className="relative overflow-hidden border-2 transition-all hover:shadow-lg">
               <CardHeader>
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600 mb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-sky/20 text-brand-blue mb-4">
                   <TrendingUp className="h-6 w-6" />
                 </div>
                 <CardTitle>Real-Time Data</CardTitle>
@@ -123,7 +123,7 @@ export default function Home() {
 
             <Card className="relative overflow-hidden border-2 transition-all hover:shadow-lg">
               <CardHeader>
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 text-purple-600 mb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-orange/20 text-brand-orange mb-4">
                   <CloudRain className="h-6 w-6" />
                 </div>
                 <CardTitle>NOAA Weather Data</CardTitle>
@@ -135,7 +135,7 @@ export default function Home() {
 
             <Card className="relative overflow-hidden border-2 transition-all hover:shadow-lg">
               <CardHeader>
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 mb-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand-sky/20 text-brand-blue mb-4">
                   <MapPin className="h-6 w-6" />
                 </div>
                 <CardTitle>Route-Specific</CardTitle>
@@ -149,31 +149,43 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="py-24 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="container px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-12 text-center md:grid-cols-3">
-            <div>
-              <div className="mb-2 text-6xl font-black md:text-7xl">
+      <section className="relative overflow-hidden py-20 sm:py-24 bg-gradient-to-r from-brand-blue to-brand-navy text-white">
+        <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.25),transparent_55%)]" />
+        <div className="container relative px-4 sm:px-6 lg:px-8">
+          <dl className="grid gap-6 sm:gap-8 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-sm p-7 sm:p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+              <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
+                <MapPin className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-5xl sm:text-6xl font-black tracking-tight">
                 6,000+
               </div>
-              <div className="text-xl font-semibold opacity-90">Airports Worldwide</div>
-              <p className="mt-2 text-sm text-blue-100">Search from any airport</p>
+              <dt className="mt-2 text-lg font-semibold text-white/95">Airports worldwide</dt>
+              <dd className="mt-1 text-sm text-white/80">Search from any airport</dd>
             </div>
-            <div>
-              <div className="mb-2 text-6xl font-black md:text-7xl">
+
+            <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-sm p-7 sm:p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+              <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
+                <Shield className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-5xl sm:text-6xl font-black tracking-tight">
                 100%
               </div>
-              <div className="text-xl font-semibold opacity-90">NOAA Weather Data</div>
-              <p className="mt-2 text-sm text-blue-100">Official forecasts</p>
+              <dt className="mt-2 text-lg font-semibold text-white/95">NOAA weather data</dt>
+              <dd className="mt-1 text-sm text-white/80">Official forecasts</dd>
             </div>
-            <div>
-              <div className="mb-2 text-6xl font-black md:text-7xl">
+
+            <div className="rounded-2xl border border-white/15 bg-white/10 backdrop-blur-sm p-7 sm:p-8 text-center shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+              <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
+                <Clock className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-5xl sm:text-6xl font-black tracking-tight">
                 24/7
               </div>
-              <div className="text-xl font-semibold opacity-90">Real-Time Updates</div>
-              <p className="mt-2 text-sm text-blue-100">Always current</p>
+              <dt className="mt-2 text-lg font-semibold text-white/95">Real-time updates</dt>
+              <dd className="mt-1 text-sm text-white/80">Always current</dd>
             </div>
-          </div>
+          </dl>
         </div>
       </section>
 
@@ -234,9 +246,9 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-24">
         <div className="container px-4 sm:px-6 lg:px-8">
-          <Card className="mx-auto max-w-4xl border-2 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+          <Card className="mx-auto max-w-4xl border-2 bg-gradient-to-br from-brand-sky/15 to-white dark:from-brand-navy/40 dark:to-background">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-brand-sky/20 text-brand-blue">
                 <Shield className="h-8 w-8" />
               </div>
               <CardTitle className="text-4xl">Ready for a Smoother Flight?</CardTitle>
@@ -247,7 +259,7 @@ export default function Home() {
             <CardContent className="text-center">
               <a
                 href="#search"
-                className="inline-flex h-11 items-center justify-center rounded-md bg-blue-600 px-8 text-base font-semibold text-white shadow transition-colors hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-1"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-primary px-8 text-base font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1"
               >
                 <Plane className="mr-2 h-4 w-4" />
                 Search Flights Now

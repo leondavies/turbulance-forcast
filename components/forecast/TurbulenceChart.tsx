@@ -65,18 +65,127 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
   // Flight duration in hours
   const durationHours = Math.ceil(route.estimatedDuration / 60)
 
-  // Determine maximum turbulence level for warning banner
-  const maxTurbulenceLevel = forecast.reduce((max, point) => {
-    const levelPriority: Record<string, number> = {
-      'severe': 4,
-      'moderate': 3,
-      'light': 2,
-      'smooth': 1
+  const levelPriority: Record<string, number> = {
+    severe: 4,
+    moderate: 3,
+    light: 2,
+    smooth: 1,
+  }
+
+  const normalizeLevel = (lvl: string) =>
+    (lvl || '').toLowerCase() as 'smooth' | 'light' | 'moderate' | 'severe'
+
+  const clampLevel = (lvl: string): 'smooth' | 'light' | 'moderate' | 'severe' => {
+    const n = normalizeLevel(lvl)
+    if (n === 'smooth' || n === 'light' || n === 'moderate' || n === 'severe') return n
+    return 'smooth'
+  }
+
+  const formatMinutes = (minutes: number) => {
+    const m = Math.max(0, Math.round(minutes))
+    const h = Math.floor(m / 60)
+    const mm = m % 60
+    if (h <= 0) return `${mm}m`
+    if (mm === 0) return `${h}h`
+    return `${h}h ${mm}m`
+  }
+
+  // Duration-weighted breakdown by turbulence level (prevents a single brief spike from dominating the copy)
+  const totalMinutes = Math.max(0, route.estimatedDuration || 0)
+  const levelMinutes: Record<'smooth' | 'light' | 'moderate' | 'severe', number> = {
+    smooth: 0,
+    light: 0,
+    moderate: 0,
+    severe: 0,
+  }
+
+  if (forecast.length >= 2 && totalMinutes > 0) {
+    const totalDistance = route.totalDistance || forecast[forecast.length - 1]?.distanceFromOrigin || 0
+    for (let i = 0; i < forecast.length - 1; i++) {
+      const a = forecast[i]
+      const b = forecast[i + 1]
+      const level = clampLevel(a.turbulence.level)
+
+      let segmentMinutes = 0
+      if (totalDistance > 0) {
+        const dA = Math.max(0, a.distanceFromOrigin || 0)
+        const dB = Math.max(0, b.distanceFromOrigin || 0)
+        const segmentDistance = Math.max(0, dB - dA)
+        segmentMinutes = (segmentDistance / totalDistance) * totalMinutes
+      } else {
+        // Fallback: evenly distribute time across segments
+        segmentMinutes = totalMinutes / (forecast.length - 1)
+      }
+      levelMinutes[level] += segmentMinutes
     }
-    const currentPriority = levelPriority[point.turbulence.level] || 0
-    const maxPriority = levelPriority[max] || 0
-    return currentPriority > maxPriority ? point.turbulence.level : max
-  }, 'smooth')
+  }
+
+  const pct = (lvl: keyof typeof levelMinutes) =>
+    totalMinutes > 0 ? (levelMinutes[lvl] / totalMinutes) * 100 : 0
+
+  const dominantLevel = (Object.keys(levelMinutes) as Array<keyof typeof levelMinutes>).reduce(
+    (best, lvl) => (levelMinutes[lvl] > levelMinutes[best] ? lvl : best),
+    'smooth'
+  )
+
+  // "Sustained" means it’s a meaningful portion of the flight, not a brief patch.
+  // Tuned to produce calmer, more accurate messaging for long-haul flights.
+  const SUSTAINED_MINUTES = 25
+  const SUSTAINED_PCT = 8
+  const BRIEF_MINUTES = 10
+
+  const isSustained = (lvl: keyof typeof levelMinutes) =>
+    levelMinutes[lvl] >= SUSTAINED_MINUTES || pct(lvl) >= SUSTAINED_PCT
+
+  const isBrief = (lvl: keyof typeof levelMinutes) =>
+    levelMinutes[lvl] > 0 && levelMinutes[lvl] < BRIEF_MINUTES && pct(lvl) < 4
+
+  // Choose banner severity based on sustained severity rather than max single point.
+  const bannerLevel: 'smooth' | 'light' | 'moderate' | 'severe' =
+    (isSustained('severe') ? 'severe' :
+    isSustained('moderate') ? 'moderate' :
+    isSustained('light') ? 'light' :
+    // If nothing is sustained, fall back to the dominant level (usually smooth)
+    (dominantLevel as any)) || 'smooth'
+
+  const breakdownParts = (['smooth', 'light', 'moderate', 'severe'] as const)
+    .filter((lvl) => levelMinutes[lvl] >= 1)
+    .map((lvl) => `${lvl[0].toUpperCase()}${lvl.slice(1)} ${formatMinutes(levelMinutes[lvl])}`)
+
+  const breakdownText = breakdownParts.length ? breakdownParts.join(' • ') : null
+
+  const makeMessage = () => {
+    // Build a calmer, duration-aware headline.
+    const severeMin = levelMinutes.severe
+    const moderateMin = levelMinutes.moderate
+    const lightMin = levelMinutes.light
+
+    if (isSustained('severe')) {
+      return `Severe turbulence possible for parts of the flight`
+    }
+    if (severeMin > 0) {
+      return `Brief pockets of severe turbulence possible`
+    }
+
+    if (isSustained('moderate')) {
+      return `Moderate turbulence likely at times`
+    }
+    if (isBrief('moderate')) {
+      return `Mostly smooth, with a brief patch of moderate turbulence possible`
+    }
+    if (moderateMin > 0) {
+      return `Some moderate turbulence possible, otherwise mostly ${dominantLevel}`
+    }
+
+    if (isSustained('light')) {
+      return `Light turbulence likely at times, otherwise mostly smooth`
+    }
+    if (lightMin > 0) {
+      return `Occasional light bumps possible, mostly smooth`
+    }
+
+    return `Smooth flight conditions expected`
+  }
 
   // Banner styling based on turbulence level
   const bannerConfig: Record<string, { bg: string, border: string, text: string, icon: string, iconColor: string, message: string }> = {
@@ -86,7 +195,7 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
       text: 'text-red-900',
       icon: '●',
       iconColor: 'text-red-500',
-      message: 'Severe turbulence expected - fasten seatbelts'
+      message: makeMessage()
     },
     moderate: {
       bg: 'bg-orange-50',
@@ -94,7 +203,7 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
       text: 'text-orange-900',
       icon: '●',
       iconColor: 'text-orange-400',
-      message: 'Episodes of moderate turbulence, bumpy flight ahead'
+      message: makeMessage()
     },
     light: {
       bg: 'bg-yellow-50',
@@ -102,7 +211,7 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
       text: 'text-yellow-900',
       icon: '●',
       iconColor: 'text-yellow-400',
-      message: 'Light turbulence possible, mostly smooth flight'
+      message: makeMessage()
     },
     smooth: {
       bg: 'bg-green-50',
@@ -110,11 +219,11 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
       text: 'text-green-900',
       icon: '●',
       iconColor: 'text-green-400',
-      message: 'Smooth flight conditions expected'
+      message: makeMessage()
     }
   }
 
-  const banner = bannerConfig[maxTurbulenceLevel] || bannerConfig.smooth
+  const banner = bannerConfig[bannerLevel] || bannerConfig.smooth
 
   return (
     <div className="relative bg-white rounded-xl overflow-hidden">
@@ -125,6 +234,11 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
           <div className={`font-semibold ${banner.text} text-sm sm:text-base`}>
             {banner.message}
           </div>
+          {breakdownText ? (
+            <div className="mt-1 text-xs sm:text-sm text-gray-700">
+              {breakdownText}
+            </div>
+          ) : null}
         </div>
       </div>
 

@@ -96,13 +96,13 @@ export function FlightSearchForm() {
             }}
             disabled={!formData.origin && !formData.destination}
             className="p-3 bg-white rounded-full shadow-lg border-2 border-gray-200
-                       hover:border-blue-500 hover:shadow-xl hover:scale-110
+                       hover:border-brand-blue hover:shadow-xl hover:scale-110
                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
                        transition-all duration-200 group"
             aria-label="Swap airports"
           >
             <svg
-              className="w-6 h-6 text-gray-600 group-hover:text-blue-600 transition-colors"
+              className="w-6 h-6 text-gray-600 group-hover:text-brand-blue transition-colors"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -138,8 +138,8 @@ export function FlightSearchForm() {
           size="lg"
           disabled={!formData.origin || !formData.destination || isLoading}
           className="min-w-[320px] text-xl py-6 rounded-2xl shadow-2xl
-                     bg-gradient-to-r from-blue-600 to-purple-600
-                     hover:from-blue-700 hover:to-purple-700
+                     bg-gradient-to-r from-brand-blue to-brand-navy
+                     hover:from-brand-blue hover:to-brand-navy
                      transform hover:scale-105 transition-all duration-200
                      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         >

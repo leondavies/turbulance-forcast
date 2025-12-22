@@ -18,6 +18,13 @@ export default {
     },
     extend: {
       colors: {
+        brand: {
+          // Extracted from `public/turbcast-logo-light-tight.png`
+          navy: "#203050",
+          blue: "#2080d0",
+          sky: "#40a0e0",
+          orange: "#f09030",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

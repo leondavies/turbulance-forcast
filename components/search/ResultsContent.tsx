@@ -76,7 +76,7 @@ export function ResultsContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-brand-sky/10 to-white p-4 sm:p-6 lg:p-8">
         <div className="container max-w-2xl mx-auto">
           <Card>
             <CardContent className="text-center py-12">
@@ -94,7 +94,7 @@ export function ResultsContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-brand-sky/10 via-white to-white py-12">
       <div className="container max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">

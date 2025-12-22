@@ -136,14 +136,14 @@ export function Autocomplete({
           placeholder={placeholder}
           required={required}
           className="w-full pl-14 pr-4 py-4 text-lg border-2 border-gray-200 rounded-2xl shadow-sm
-                     focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20
+                         focus:outline-none focus:border-primary focus:ring-4 focus:ring-ring/20
                      hover:border-gray-300 transition-all duration-200 bg-white
                      placeholder:text-gray-400"
         />
 
         {isLoading && (
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
-            <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>

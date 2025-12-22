@@ -1,8 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { getTurbulenceColor } from '@/services/weather/aviationWeather'
-import Map, { Marker, Source, Layer } from 'react-map-gl/mapbox'
+import Map, { Marker, Source, Layer, type MapRef } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 interface TurbulenceMapProps {
@@ -18,14 +18,109 @@ interface TurbulenceMapProps {
 }
 
 export function TurbulenceMap({ origin, destination, forecast }: TurbulenceMapProps) {
+  const mapRef = useRef<MapRef | null>(null)
 
-  // Calculate center and bounds
+  const wrapLon = (lon: number) => {
+    // Normalize to [-180, 180)
+    const x = ((((lon + 180) % 360) + 360) % 360) - 180
+    return x
+  }
+
+  const unwrapLonNear = (lon: number, referenceLon: number) => {
+    // Shift lon by ±360 so it's as close as possible to referenceLon
+    let x = wrapLon(lon)
+    const ref = wrapLon(referenceLon)
+    const delta = x - ref
+    if (delta > 180) x -= 360
+    if (delta < -180) x += 360
+    return x
+  }
+
+  const shortestLonDiff = (a: number, b: number) => {
+    const d = Math.abs(wrapLon(b) - wrapLon(a))
+    return Math.min(d, 360 - d)
+  }
+
+  const splitSegmentAtAntimeridian = (
+    a: [number, number],
+    b: [number, number]
+  ): Array<[[number, number], [number, number]]> => {
+    const [lon1, lat1] = a
+    const [lon2, lat2] = b
+
+    // Work in wrapped space for detection
+    const x1 = wrapLon(lon1)
+    const x2 = wrapLon(lon2)
+    const delta = x2 - x1
+
+    // Normal case: doesn't cross the antimeridian
+    if (Math.abs(delta) <= 180) {
+      return [[[x1, lat1], [x2, lat2]]]
+    }
+
+    // Crosses the antimeridian: split into two segments at ±180
+    const crossesEastward = x1 > 0 && x2 < 0
+    const crossingLon = crossesEastward ? 180 : -180
+
+    // Adjust the second longitude into a continuous space to interpolate correctly
+    const x2Adjusted = crossesEastward ? x2 + 360 : x2 - 360
+    const t = (crossingLon - x1) / (x2Adjusted - x1)
+    const latCross = lat1 + t * (lat2 - lat1)
+
+    const otherSideLon = crossingLon === 180 ? -180 : 180
+
+    return [
+      [[x1, lat1], [crossingLon, latCross]],
+      [[otherSideLon, latCross], [x2, lat2]],
+    ]
+  }
+
+  const routeBounds = useMemo(() => {
+    // Prefer forecast waypoints (better representation of the drawn polyline),
+    // but fall back to origin/destination if forecast isn't available yet.
+    const pts = forecast?.length
+      ? forecast.map((p) => ({ lat: p.lat, lon: p.lon }))
+      : [
+          { lat: origin.lat, lon: origin.lon },
+          { lat: destination.lat, lon: destination.lon },
+        ]
+
+    if (pts.length < 2) return null
+
+    // Unwrap lons to a continuous sequence (avoids dateline bounds being "the long way around")
+    const unwrapped: number[] = []
+    for (let i = 0; i < pts.length; i++) {
+      if (i === 0) unwrapped.push(wrapLon(pts[i].lon))
+      else unwrapped.push(unwrapLonNear(pts[i].lon, unwrapped[i - 1]))
+    }
+
+    let west = Math.min(...unwrapped)
+    let east = Math.max(...unwrapped)
+    const center = (west + east) / 2
+
+    // Shift to keep the center in [-180, 180) so Mapbox viewport behaves predictably
+    let shift = 0
+    if (center < -180) shift = 360
+    if (center >= 180) shift = -360
+    west += shift
+    east += shift
+
+    const lats = pts.map((p) => p.lat)
+    const south = Math.min(...lats)
+    const north = Math.max(...lats)
+
+    return { west, east, south, north }
+  }, [forecast, origin.lat, origin.lon, destination.lat, destination.lon])
+
+  // Center the initial view roughly between origin & destination; fitBounds will refine this.
+  const originLonWrapped = wrapLon(origin.lon)
+  const destLonUnwrapped = unwrapLonNear(destination.lon, originLonWrapped)
+  const centerLon = wrapLon((originLonWrapped + destLonUnwrapped) / 2)
   const centerLat = (origin.lat + destination.lat) / 2
-  const centerLon = (origin.lon + destination.lon) / 2
 
   // Calculate distance for zoom level
   const latDiff = Math.abs(origin.lat - destination.lat)
-  const lonDiff = Math.abs(origin.lon - destination.lon)
+  const lonDiff = shortestLonDiff(origin.lon, destination.lon)
   const maxDiff = Math.max(latDiff, lonDiff)
 
   // Determine zoom level based on distance
@@ -36,23 +131,56 @@ export function TurbulenceMap({ origin, destination, forecast }: TurbulenceMapPr
   else if (maxDiff < 80) zoom = 2
   else zoom = 1
 
-  // Create separate GeoJSON features for each segment with color based on turbulence
-  const segmentFeatures = forecast.slice(0, -1).map((point, i) => {
+  const fitToRoute = () => {
+    const map = mapRef.current
+    if (!map || !routeBounds) return
+
+    // Ensure the map has measured its container
+    map.resize()
+    map.fitBounds(
+      [
+        [routeBounds.west, routeBounds.south],
+        [routeBounds.east, routeBounds.north],
+      ],
+      {
+        padding: 80,
+        duration: 700,
+      }
+    )
+  }
+
+  // Fit when forecast/route loads or changes.
+  useEffect(() => {
+    if (!routeBounds) return
+    fitToRoute()
+    // Fit again shortly after (helps when map becomes visible after scroll / layout settles)
+    const t = window.setTimeout(() => fitToRoute(), 150)
+    return () => window.clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeBounds])
+
+  // Create separate GeoJSON features for each segment, splitting at the antimeridian
+  // to avoid the "wrap-around ring" on long-haul routes (e.g. crossing ±180° longitude).
+  const segmentFeatures = forecast.slice(0, -1).flatMap((point, i) => {
     const nextPoint = forecast[i + 1]
-    return {
+    const color = getTurbulenceColor(point.turbulence.level as any)
+
+    const pieces = splitSegmentAtAntimeridian(
+      [point.lon, point.lat],
+      [nextPoint.lon, nextPoint.lat]
+    )
+
+    return pieces.map((coords) => ({
       type: 'Feature' as const,
       properties: {
-        color: getTurbulenceColor(point.turbulence.level as any),
-        level: point.turbulence.level
+        color,
+        level: point.turbulence.level,
       },
       geometry: {
         type: 'LineString' as const,
-        coordinates: [
-          [point.lon, point.lat],
-          [nextPoint.lon, nextPoint.lat]
-        ]
-      }
-    }
+        coordinates: coords,
+      },
+    }))
   })
 
   const routeGeoJSON = {
@@ -77,14 +205,20 @@ export function TurbulenceMap({ origin, destination, forecast }: TurbulenceMapPr
   return (
     <div className="relative w-full h-full">
       <Map
+        ref={mapRef}
         mapboxAccessToken={MAPBOX_TOKEN}
+        onLoad={() => {
+          fitToRoute()
+        }}
         initialViewState={{
           longitude: centerLon,
           latitude: centerLat,
-          zoom: zoom
+          zoom,
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/light-v11"
+        // Prevent duplicated world copies that can make long-haul routes look like a "ring"
+        renderWorldCopies={false}
       >
         {/* Route Line */}
         <Source id="route-source" type="geojson" data={routeGeoJSON}>
@@ -94,7 +228,7 @@ export function TurbulenceMap({ origin, destination, forecast }: TurbulenceMapPr
         {/* Origin Marker */}
         <Marker longitude={origin.lon} latitude={origin.lat} anchor="bottom">
           <div className="flex flex-col items-center">
-            <div className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-white shadow-lg font-bold text-xs">
+            <div className="bg-brand-blue text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-white shadow-lg font-bold text-xs">
               {origin.iata}
             </div>
             <div className="text-xs font-semibold text-gray-900 bg-white px-2 py-1 rounded shadow mt-1">
@@ -106,7 +240,7 @@ export function TurbulenceMap({ origin, destination, forecast }: TurbulenceMapPr
         {/* Destination Marker */}
         <Marker longitude={destination.lon} latitude={destination.lat} anchor="bottom">
           <div className="flex flex-col items-center">
-            <div className="bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-white shadow-lg font-bold text-xs">
+            <div className="bg-brand-orange text-white rounded-full w-8 h-8 flex items-center justify-center border-2 border-white shadow-lg font-bold text-xs">
               {destination.iata}
             </div>
             <div className="text-xs font-semibold text-gray-900 bg-white px-2 py-1 rounded shadow mt-1">
