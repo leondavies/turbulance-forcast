@@ -68,7 +68,7 @@ export function FlightSearchForm() {
       )}
 
       {/* Origin & Destination */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6 items-end">
         <Autocomplete
           label="From"
           placeholder="Search airport, city, or code..."
@@ -82,6 +82,41 @@ export function FlightSearchForm() {
           required
         />
 
+        {/* Swap Button */}
+        <div className="flex justify-center lg:pb-1">
+          <button
+            type="button"
+            onClick={() => {
+              setFormData((prev) => ({
+                ...prev,
+                origin: prev.destination,
+                destination: prev.origin,
+              }))
+              setError('')
+            }}
+            disabled={!formData.origin && !formData.destination}
+            className="p-3 bg-white rounded-full shadow-lg border-2 border-gray-200
+                       hover:border-blue-500 hover:shadow-xl hover:scale-110
+                       disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                       transition-all duration-200 group"
+            aria-label="Swap airports"
+          >
+            <svg
+              className="w-6 h-6 text-gray-600 group-hover:text-blue-600 transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+              />
+            </svg>
+          </button>
+        </div>
+
         <Autocomplete
           label="To"
           placeholder="Search airport, city, or code..."
@@ -94,40 +129,6 @@ export function FlightSearchForm() {
           onSearch={searchAirports}
           required
         />
-      </div>
-
-      {/* Swap Button */}
-      <div className="flex justify-center -my-4">
-        <button
-          type="button"
-          onClick={() => {
-            setFormData((prev) => ({
-              ...prev,
-              origin: prev.destination,
-              destination: prev.origin,
-            }))
-          }}
-          disabled={!formData.origin || !formData.destination}
-          className="p-3 bg-white rounded-full shadow-lg border-2 border-gray-200
-                     hover:border-blue-500 hover:shadow-xl hover:scale-110
-                     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
-                     transition-all duration-200 group"
-          aria-label="Swap airports"
-        >
-          <svg
-            className="w-6 h-6 text-gray-600 group-hover:text-blue-600 transition-colors"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
-            />
-          </svg>
-        </button>
       </div>
 
       {/* Submit Button */}

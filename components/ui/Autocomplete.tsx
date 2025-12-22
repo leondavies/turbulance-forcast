@@ -27,6 +27,7 @@ export function Autocomplete({
   icon = '🔍',
 }: AutocompleteProps) {
   const [query, setQuery] = useState('')
+  const [selectedValue, setSelectedValue] = useState('')
   const [options, setOptions] = useState<Option[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -44,6 +45,13 @@ export function Autocomplete({
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // Keep input display in sync when value is changed externally (e.g. swap button)
+  useEffect(() => {
+    if (value === selectedValue) return
+    setSelectedValue(value)
+    setQuery(value || '')
+  }, [value, selectedValue])
 
   // Search airports as user types
   useEffect(() => {
@@ -74,6 +82,7 @@ export function Autocomplete({
 
   const handleSelect = (option: Option) => {
     setQuery(option.label)
+    setSelectedValue(option.value)
     onChange(option.value)
     setIsOpen(false)
     setSelectedIndex(-1)
@@ -115,7 +124,10 @@ export function Autocomplete({
           value={query}
           onChange={(e) => {
             setQuery(e.target.value)
-            if (!e.target.value) onChange('')
+            if (!e.target.value) {
+              setSelectedValue('')
+              onChange('')
+            }
           }}
           onFocus={() => {
             if (options.length > 0) setIsOpen(true)
