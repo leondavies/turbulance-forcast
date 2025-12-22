@@ -87,7 +87,7 @@ export function DataSources({ metadata, cached }: DataSourcesProps) {
                 {supportSummary}
               </div>
 
-              <div className="flex items-center justify-end gap-1.5 text-xs text-gray-600">
+              <div className="flex items-center justify-start gap-1.5 text-xs text-gray-600">
                 <Clock className="h-4 w-4 text-gray-500" />
                 <span>Updated {timeAgoText}</span>
                 <span className="text-gray-400 group-open:rotate-180 transition-transform leading-none">
