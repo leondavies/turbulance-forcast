@@ -55,17 +55,13 @@ export function ResultsContent() {
     fetchFlights()
   }, [origin, destination, date])
 
-  const formatTimeParts = (date: Date, timezone?: string) => {
+  const formatTime24 = (date: Date, timezone?: string) => {
     // AviationStack returns times in local timezone but formats them as UTC
     // So we extract the time components directly without timezone conversion
     const d = new Date(date)
     const hours24 = d.getUTCHours()
     const minutes = d.getUTCMinutes().toString().padStart(2, '0')
-
-    // Convert to 12-hour format with AM/PM
-    const period = hours24 >= 12 ? 'PM' : 'AM'
-    const hours12 = hours24 % 12 || 12 // Convert 0 to 12 for midnight
-    return { time: `${hours12}:${minutes}`, period }
+    return `${hours24.toString().padStart(2, '0')}:${minutes}`
   }
 
   const formatDuration = (dep: Date, arr: Date) => {
@@ -168,17 +164,13 @@ export function ResultsContent() {
                 >
                   <CardContent className="p-4 sm:p-4">
                     {(() => {
-                      const dep = formatTimeParts(
+                      const dep = formatTime24(
                         flight.departure.scheduled,
                         flight.origin.timezone
                       )
-                      const arr = formatTimeParts(
+                      const arr = formatTime24(
                         flight.arrival.scheduled,
                         flight.destination.timezone
-                      )
-                      const duration = formatDuration(
-                        flight.departure.scheduled,
-                        flight.arrival.scheduled
                       )
 
                       return (
@@ -220,37 +212,8 @@ export function ResultsContent() {
                               </div>
 
                               <div className="mt-3 pt-3 border-t border-gray-100">
-                                <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                                  <div className="text-left">
-                                    <div className="font-bold text-gray-900 whitespace-nowrap tabular-nums">
-                                      <span className="text-base">{dep.time}</span>
-                                      <span className="ml-1 text-xs font-semibold text-gray-500 align-top">
-                                        {dep.period}
-                                      </span>
-                                    </div>
-                                    <div className="text-xs text-gray-500 uppercase font-medium">
-                                      {origin}
-                                    </div>
-                                  </div>
-
-                                  <div className="text-center px-1">
-                                    <div className="text-gray-400 text-sm leading-none">✈</div>
-                                    <div className="mt-1 text-xs text-gray-500 whitespace-nowrap">
-                                      {duration}
-                                    </div>
-                                  </div>
-
-                                  <div className="text-right">
-                                    <div className="font-bold text-gray-900 whitespace-nowrap tabular-nums">
-                                      <span className="text-base">{arr.time}</span>
-                                      <span className="ml-1 text-xs font-semibold text-gray-500 align-top">
-                                        {arr.period}
-                                      </span>
-                                    </div>
-                                    <div className="text-xs text-gray-500 uppercase font-medium">
-                                      {destination}
-                                    </div>
-                                  </div>
+                                <div className="text-base font-bold text-gray-900 tabular-nums whitespace-nowrap">
+                                  {dep} <span className="text-gray-400 font-semibold">–</span> {arr}
                                 </div>
                               </div>
                             </div>
@@ -289,39 +252,11 @@ export function ResultsContent() {
                             </div>
 
                             {/* Center: Times and Duration */}
-                            <div className="flex-1 min-w-0 flex items-center justify-center gap-4 md:gap-6">
-                              {/* Departure */}
-                              <div className="text-center">
-                                <div className="text-xl md:text-2xl font-bold text-gray-900 whitespace-nowrap">
-                                  <span>{dep.time}</span>
-                                  <span className="ml-1 align-top text-sm font-semibold text-gray-500">
-                                    {dep.period}
-                                  </span>
-                                </div>
-                                <div className="text-xs text-gray-500 uppercase font-medium">
-                                  {origin}
-                                </div>
-                              </div>
-
-                              {/* Arrow & Duration */}
-                              <div className="flex flex-col items-center justify-center px-2">
-                                <div className="text-gray-400 text-sm mb-1">✈</div>
-                                <div className="text-xs text-gray-500 whitespace-nowrap">
-                                  {duration}
-                                </div>
-                              </div>
-
-                              {/* Arrival */}
-                              <div className="text-center">
-                                <div className="text-xl md:text-2xl font-bold text-gray-900 whitespace-nowrap">
-                                  <span>{arr.time}</span>
-                                  <span className="ml-1 align-top text-sm font-semibold text-gray-500">
-                                    {arr.period}
-                                  </span>
-                                </div>
-                                <div className="text-xs text-gray-500 uppercase font-medium">
-                                  {destination}
-                                </div>
+                            <div className="flex-1 min-w-0 flex items-center justify-center">
+                              <div className="text-xl md:text-2xl font-bold text-gray-900 tabular-nums whitespace-nowrap">
+                                {dep}{' '}
+                                <span className="text-gray-400 font-semibold">–</span>{' '}
+                                {arr}
                               </div>
                             </div>
 
