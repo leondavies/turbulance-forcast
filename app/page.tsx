@@ -4,8 +4,8 @@ import { Badge } from '@/components/ui/badge'
 import { Plane, CloudRain, MapPin, TrendingUp, Shield, Clock } from 'lucide-react'
 import { JsonLd } from "@/components/seo/JsonLd"
 import { SITE_URL } from "@/lib/site"
-import { TOP_ROUTE_GROUPS, toRouteSlug } from "@/lib/seo/topRoutes"
-import Link from "next/link"
+import { TOP_ROUTE_GROUPS } from "@/lib/seo/topRoutes"
+import { PopularRoutesByRegion } from "@/components/home/PopularRoutesByRegion"
 
 export default function Home() {
   return (
@@ -201,45 +201,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mx-auto max-w-6xl grid gap-6 md:grid-cols-2">
-            {TOP_ROUTE_GROUPS.map((group) => (
-              <div
-                key={group.title}
-                className="rounded-2xl border bg-white p-5 sm:p-6 shadow-sm"
-              >
-                <div className="mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">
-                    {group.title}
-                  </h3>
-                  {group.description ? (
-                    <p className="text-sm text-gray-600 mt-1">
-                      {group.description}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {group.routes.slice(0, 10).map((r) => {
-                    const slug = toRouteSlug(r.origin, r.destination)
-                    return (
-                      <Link
-                        key={`${group.title}-${slug}`}
-                        href={`/routes/${slug}`}
-                        className="group flex items-center justify-between rounded-xl border bg-white px-4 py-3 hover:bg-muted/30 transition-colours"
-                      >
-                        <span className="font-semibold text-gray-900">
-                          {r.origin} → {r.destination}
-                        </span>
-                        <span className="text-sm text-blue-600 font-medium group-hover:underline">
-                          View
-                        </span>
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
+          <PopularRoutesByRegion groups={TOP_ROUTE_GROUPS} />
         </div>
       </section>
 
