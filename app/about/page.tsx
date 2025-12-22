@@ -34,7 +34,7 @@ export default function About() {
               <p className="text-gray-700 leading-relaxed">
                 TurbCast is a turbulence forecast tool designed for curious or nervous flyers.
                 It provides detailed turbulence predictions for flights up to 36 hours in advance,
-                using real weather data from NOAA/NWS and other authoritative sources.
+                using aviation weather data from NOAA’s Aviation Weather Center and route-based modelling.
               </p>
             </CardContent>
           </Card>
@@ -55,7 +55,7 @@ export default function About() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">3. Weather Data Analysis</h3>
-                  <p>We fetch the latest WAFS turbulence forecasts from NOAA and process them for your specific route and altitude.</p>
+                  <p>We pull official aviation advisories and pilot reports (SIGMETs, AIRMETs, PIREPs) from NOAA’s Aviation Weather Center and apply them along your route.</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">4. Aircraft-Specific Forecast</h3>
@@ -72,16 +72,16 @@ export default function About() {
             <CardContent>
               <ul className="space-y-3 text-gray-700">
                 <li>
-                  <strong>Turbulence:</strong> NOAA/NWS World Area Forecast System (WAFS) - Eddy Dissipation Rate (EDR) forecasts
+                  <strong>Aviation weather advisories:</strong> NOAA Aviation Weather Center (aviationweather.gov) — SIGMETs and AIRMETs
                 </li>
                 <li>
-                  <strong>Wind:</strong> NOAA Global Forecast System (GFS) wind components
+                  <strong>Pilot reports:</strong> NOAA Aviation Weather Center — PIREPs near your route (when available)
                 </li>
                 <li>
-                  <strong>Thunderstorms:</strong> Met Office WAFC Cumulonimbus (CB) cloud forecasts
+                  <strong>Forecast model:</strong> Route-based modelling used when real-time reports are limited
                 </li>
                 <li>
-                  <strong>Flight Data:</strong> AviationStack real-time flight information
+                  <strong>Flight schedules:</strong> AirLabs
                 </li>
               </ul>
             </CardContent>

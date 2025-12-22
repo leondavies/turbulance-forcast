@@ -36,9 +36,9 @@ export async function GET(request: NextRequest) {
       flightDate: date || undefined,
     })
 
-    // Filter to show TODAY's flights in the AIRPORT's local timezone
-    // AviationStack returns times in local timezone but with +00:00 suffix (misleading!)
-    // So we can just extract the date portion and compare directly
+    // Filter to show TODAY's flights in the AIRPORT's local timezone.
+    // Our flight provider timestamps are stored in UTC in our `Flight` objects, so we compare
+    // by date after converting to ISO.
     const timezone = originAirport?.timezone || 'UTC'
 
     // Get today's date in the airport's local timezone (format: YYYY-MM-DD)
@@ -49,11 +49,7 @@ export async function GET(request: NextRequest) {
     console.log(`Filtering for today in ${timezone}: ${todayInLocalTZ}`)
 
     const filteredFlights = flights.filter(flight => {
-      // Extract date from AviationStack time (which is in local TZ despite +00:00)
-      // Format: "2025-12-21T05:45:00.000Z" -> "2025-12-21"
       const departureDate = new Date(flight.departure.scheduled).toISOString().split('T')[0]
-
-      // Check if departure is on today's date
       return departureDate === todayInLocalTZ
     })
 

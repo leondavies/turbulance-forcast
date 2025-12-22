@@ -56,8 +56,7 @@ export function ResultsContent() {
   }, [origin, destination, date])
 
   const formatTime24 = (date: Date, timezone?: string) => {
-    // AviationStack returns times in local timezone but formats them as UTC
-    // So we extract the time components directly without timezone conversion
+    // We store times as Date objects (in UTC), and display HH:MM.
     const d = new Date(date)
     const hours24 = d.getUTCHours()
     const minutes = d.getUTCMinutes().toString().padStart(2, '0')

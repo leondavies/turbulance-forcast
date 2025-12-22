@@ -61,15 +61,15 @@ export function Footer() {
             <ul className="space-y-3 text-gray-300">
               <li className="flex items-start gap-2">
                 <span className="text-blue-400 mt-1">✓</span>
-                <span>NOAA/NWS Weather Data</span>
+                <span>NOAA Aviation Weather Center (PIREPs, SIGMETs, AIRMETs)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-400 mt-1">✓</span>
-                <span>Met Office Forecasts</span>
+                <span>AirLabs flight schedules</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-400 mt-1">✓</span>
-                <span>AviationStack Flight Data</span>
+                <span>Airport & aircraft reference data (local database)</span>
               </li>
             </ul>
           </div>

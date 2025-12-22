@@ -17,54 +17,57 @@ interface RouteSegmentsProps {
 }
 
 export function RouteSegments({ forecast, origin, destination }: RouteSegmentsProps) {
-  // Group consecutive segments with same turbulence level
+  if (!forecast || forecast.length < 2) return null
+
+  // Group consecutive *intervals* with the same turbulence level.
+  // Each waypoint i represents the segment from distance[i] -> distance[i+1].
   const segments: Array<{
-    start: number
-    end: number
+    startKm: number
+    endKm: number
     level: string
     avgEDR: number
     avgWind: number
   }> = []
 
-  let currentSegment = {
-    start: 0,
-    end: 0,
-    level: forecast[0].turbulence.level,
-    edrs: [forecast[0].turbulence.edr],
-    winds: [forecast[0].turbulence.windSpeed],
-  }
+  const totalDistanceKm = forecast[forecast.length - 1].distanceFromOrigin
 
-  for (let i = 1; i < forecast.length; i++) {
-    if (forecast[i].turbulence.level === currentSegment.level) {
-      currentSegment.end = i
-      currentSegment.edrs.push(forecast[i].turbulence.edr)
-      currentSegment.winds.push(forecast[i].turbulence.windSpeed)
-    } else {
-      segments.push({
-        start: Math.round(forecast[currentSegment.start].distanceFromOrigin),
-        end: Math.round(forecast[currentSegment.end].distanceFromOrigin),
-        level: currentSegment.level,
-        avgEDR: currentSegment.edrs.reduce((a, b) => a + b, 0) / currentSegment.edrs.length,
-        avgWind: Math.round(currentSegment.winds.reduce((a, b) => a + b, 0) / currentSegment.winds.length),
-      })
+  let segStartIdx = 0
+  let segEndIdx = 0 // inclusive, max forecast.length - 2
+  let segLevel = forecast[0].turbulence.level
+  let edrs: number[] = [forecast[0].turbulence.edr]
+  let winds: number[] = [forecast[0].turbulence.windSpeed]
 
-      currentSegment = {
-        start: i,
-        end: i,
-        level: forecast[i].turbulence.level,
-        edrs: [forecast[i].turbulence.edr],
-        winds: [forecast[i].turbulence.windSpeed],
-      }
+  for (let i = 1; i < forecast.length - 1; i++) {
+    const lvl = forecast[i].turbulence.level
+    if (lvl === segLevel) {
+      segEndIdx = i
+      edrs.push(forecast[i].turbulence.edr)
+      winds.push(forecast[i].turbulence.windSpeed)
+      continue
     }
+
+    segments.push({
+      startKm: forecast[segStartIdx].distanceFromOrigin,
+      endKm: forecast[segEndIdx + 1].distanceFromOrigin,
+      level: segLevel,
+      avgEDR: edrs.reduce((a, b) => a + b, 0) / edrs.length,
+      avgWind: Math.round(winds.reduce((a, b) => a + b, 0) / winds.length),
+    })
+
+    segStartIdx = i
+    segEndIdx = i
+    segLevel = lvl
+    edrs = [forecast[i].turbulence.edr]
+    winds = [forecast[i].turbulence.windSpeed]
   }
 
-  // Push final segment
+  // Push final segment (ending at total distance).
   segments.push({
-    start: Math.round(forecast[currentSegment.start].distanceFromOrigin),
-    end: Math.round(forecast[currentSegment.end].distanceFromOrigin),
-    level: currentSegment.level,
-    avgEDR: currentSegment.edrs.reduce((a, b) => a + b, 0) / currentSegment.edrs.length,
-    avgWind: Math.round(currentSegment.winds.reduce((a, b) => a + b, 0) / currentSegment.winds.length),
+    startKm: forecast[segStartIdx].distanceFromOrigin,
+    endKm: forecast[Math.min(segEndIdx + 1, forecast.length - 1)].distanceFromOrigin,
+    level: segLevel,
+    avgEDR: edrs.reduce((a, b) => a + b, 0) / edrs.length,
+    avgWind: Math.round(winds.reduce((a, b) => a + b, 0) / winds.length),
   })
 
   return (
@@ -95,7 +98,7 @@ export function RouteSegments({ forecast, origin, destination }: RouteSegmentsPr
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Distance</div>
                   <div className="font-semibold text-gray-900">
-                    {segment.start} - {segment.end} km
+                    {Math.round(segment.startKm)} - {Math.round(segment.endKm)} km
                   </div>
                   <div className="text-xs text-gray-500">
                     from {origin}
@@ -125,10 +128,10 @@ export function RouteSegments({ forecast, origin, destination }: RouteSegmentsPr
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Length</div>
                   <div className="font-semibold text-gray-900">
-                    {segment.end - segment.start} km
+                    {Math.max(0, Math.round(segment.endKm - segment.startKm))} km
                   </div>
                   <div className="text-xs text-gray-500">
-                    {Math.round((segment.end - segment.start) / forecast[forecast.length - 1].distanceFromOrigin * 100)}% of route
+                    {Math.round(((segment.endKm - segment.startKm) / Math.max(1, totalDistanceKm)) * 100)}% of route
                   </div>
                 </div>
               </div>
