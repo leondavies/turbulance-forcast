@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/turbcast-favicon-square.png", type: "image/png", sizes: "552x552" },
-      { url: "/icon.svg", type: "image/svg+xml" },
     ],
+    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
   },
   alternates: {
     canonical: "/",
