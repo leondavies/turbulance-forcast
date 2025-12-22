@@ -72,13 +72,16 @@ export default function About() {
             <CardContent>
               <ul className="space-y-3 text-gray-700">
                 <li>
-                  <strong>Aviation weather advisories:</strong> NOAA Aviation Weather Center (aviationweather.gov) — SIGMETs and AIRMETs
+                  <strong>Turbulence forecast model:</strong> NOAA NOMADS (WAFS GRIB2) — Raw gridded turbulence data with high precision
                 </li>
                 <li>
-                  <strong>Pilot reports:</strong> NOAA Aviation Weather Center — PIREPs near your route (when available)
+                  <strong>Aviation weather advisories:</strong> NOAA Aviation Weather Center — SIGMETs, AIRMETs, and G-AIRMETs
                 </li>
                 <li>
-                  <strong>Forecast model:</strong> Route-based modelling used when real-time reports are limited
+                  <strong>Pilot reports:</strong> NOAA Aviation Weather Center — Real-time PIREPs from aircraft near your route
+                </li>
+                <li>
+                  <strong>International coverage:</strong> Global WAFS turbulence forecasts for worldwide routes
                 </li>
                 <li>
                   <strong>Flight schedules:</strong> AirLabs

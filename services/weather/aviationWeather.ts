@@ -1,4 +1,5 @@
 import type { RoutePoint } from '../route/greatCircle'
+import { sampleNomadsWafsAlongRoute } from './nomadsGrib'
 import { sampleWafsModelAlongRoute } from './wafsModel'
 
 export type TurbulenceLevel = 'smooth' | 'light' | 'moderate' | 'severe'
@@ -43,7 +44,7 @@ export interface ForecastMetadata {
   modelOnly?: boolean
   /** Model metadata when available. */
   model?: {
-    source: 'noaa-awc-wafs'
+    source: 'noaa-nomads-wafs' | 'noaa-awc-wafs'
     run: string
     forecastHour: number
     levelMb: number
@@ -64,16 +65,35 @@ export async function generateTurbulenceForecast(
   waypoints: RoutePoint[],
   opts?: { departureTime?: Date; aircraftIata?: string; durationMinutes?: number }
 ): Promise<ForecastResult> {
-  // Always try to fetch model guidance first. If this fails, we may fall back to heuristic.
-  let wafs: Awaited<ReturnType<typeof sampleWafsModelAlongRoute>> | null = null
+  // Try data sources in priority order:
+  // 1. NOMADS GRIB2 (raw gridded data - highest accuracy)
+  // 2. WAFS PNG sampling (fallback if NOMADS unavailable)
+  // 3. Heuristic calculation (last resort)
+
+  let wafs: Awaited<ReturnType<typeof sampleNomadsWafsAlongRoute>> | null = null
+
+  // Try NOMADS GRIB2 first
   try {
-    wafs = await sampleWafsModelAlongRoute(waypoints, {
+    console.log('[TurbCast] Attempting NOMADS GRIB2 fetch...')
+    wafs = await sampleNomadsWafsAlongRoute(waypoints, {
       departureTime: opts?.departureTime,
       durationMinutes: opts?.durationMinutes,
     })
+    console.log('[TurbCast] NOMADS GRIB2 fetch successful')
   } catch (error) {
-    console.error('Error fetching WAFS model guidance:', error)
-    wafs = null
+    console.warn('[TurbCast] NOMADS GRIB2 unavailable, falling back to PNG sampling:', error)
+
+    // Fallback to PNG sampling
+    try {
+      wafs = await sampleWafsModelAlongRoute(waypoints, {
+        departureTime: opts?.departureTime,
+        durationMinutes: opts?.durationMinutes,
+      })
+      console.log('[TurbCast] WAFS PNG sampling successful (fallback)')
+    } catch (pngError) {
+      console.error('[TurbCast] WAFS PNG sampling also failed:', pngError)
+      wafs = null
+    }
   }
 
   try {
