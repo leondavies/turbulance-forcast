@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/opengraph-image",
+        url: "/opengraph.png",
         width: 1200,
         height: 630,
         alt: "TurbCast — Flight turbulence forecast",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     title: "TurbCast — Flight turbulence forecast",
     description:
       "Check expected turbulence for your flight route using live aviation weather data.",
-    images: ["/opengraph-image"],
+    images: ["/opengraph.png"],
   },
   robots: {
     index: true,

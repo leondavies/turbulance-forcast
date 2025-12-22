@@ -23,7 +23,7 @@ export default function Home() {
             "@type": "Organization",
             name: "TurbCast",
             url: SITE_URL,
-            logo: `${SITE_URL}/opengraph-image`,
+            logo: `${SITE_URL}/turbcast-logo.png`,
           },
         ]}
       />
