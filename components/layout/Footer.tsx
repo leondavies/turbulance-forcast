@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -10,12 +9,11 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
-              <Image
-                src="/turbcast-logo.png"
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/turbcast-logo-dark-tight-transparent.png"
                 alt="TurbCast"
-                width={260}
-                height={173}
-                className="h-12 w-auto"
+                className="h-6 sm:h-7 w-auto"
               />
             </div>
             <p className="text-gray-300 text-lg mb-6 max-w-md">

@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -15,13 +14,11 @@ export function Header() {
         <div className="flex justify-between items-center h-20">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3 group">
-              <Image
-                src="/turbcast-logo.png"
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/turbcast-logo-light-tight.png"
                 alt="TurbCast"
-                width={240}
-                height={160}
-                priority
-                className="h-10 w-auto transform group-hover:scale-[1.03] transition-transform duration-200"
+                className="h-12 sm:h-14 w-auto transform group-hover:scale-[1.03] transition-transform duration-200"
               />
               <span className="sr-only">TurbCast</span>
             </Link>
