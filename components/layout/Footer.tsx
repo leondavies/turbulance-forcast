@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
@@ -9,10 +10,13 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="text-4xl">✈️</div>
-              <span className="text-3xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                TurbCast
-              </span>
+              <Image
+                src="/turbcast-logo.png"
+                alt="TurbCast"
+                width={260}
+                height={173}
+                className="h-12 w-auto"
+              />
             </div>
             <p className="text-gray-300 text-lg mb-6 max-w-md">
               Real-time turbulence forecasts for your flight. Plan your journey with confidence using NOAA weather data.

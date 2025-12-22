@@ -13,6 +13,11 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#2563eb",
     icons: [
       {
+        src: `${SITE_URL}/turbcast-favicon-square.png`,
+        sizes: "552x552",
+        type: "image/png",
+      },
+      {
         src: `${SITE_URL}/icon.svg`,
         sizes: "any",
         type: "image/svg+xml",

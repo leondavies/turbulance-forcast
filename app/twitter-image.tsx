@@ -9,7 +9,11 @@ export const size = {
 
 export const contentType = "image/png";
 
-export default function TwitterImage() {
+export default async function TwitterImage() {
+  const logo = await fetch(new URL("../public/turbcast-logo.png", import.meta.url)).then(
+    (res) => res.blob()
+  );
+
   return new ImageResponse(
     (
       <div
@@ -28,9 +32,12 @@ export default function TwitterImage() {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          <div style={{ fontSize: 56, fontWeight: 800, letterSpacing: -1 }}>
-            TurbCast
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={logo}
+            alt="TurbCast"
+            style={{ width: 380, height: "auto" }}
+          />
           <div style={{ fontSize: 34, fontWeight: 700 }}>
             Flight turbulence forecast
           </div>

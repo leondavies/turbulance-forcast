@@ -20,7 +20,10 @@ export const metadata: Metadata = {
   applicationName: "TurbCast",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    icon: [
+      { url: "/turbcast-favicon-square.png", type: "image/png", sizes: "552x552" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
   },
   alternates: {
     canonical: "/",
