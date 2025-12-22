@@ -196,21 +196,6 @@ export function ForecastContent() {
           </Card>
         </div>
 
-        {/* Summary */}
-        <div className="mb-6">
-          <TurbulenceSummary
-            summary={forecast.summary}
-            route={forecast.route}
-          />
-        </div>
-
-        {/* Data Sources & Confidence */}
-        {forecast.metadata && (
-          <div className="mb-6">
-            <DataSources metadata={forecast.metadata} cached={forecast.cached} />
-          </div>
-        )}
-
         {/* Map */}
         <div className="mb-6">
           <Card className="overflow-hidden">
@@ -229,6 +214,21 @@ export function ForecastContent() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Summary */}
+        <div className="mb-6">
+          <TurbulenceSummary
+            summary={forecast.summary}
+            route={forecast.route}
+          />
+        </div>
+
+        {/* Data sources (optional) */}
+        {forecast.metadata && (
+          <div className="mb-6">
+            <DataSources metadata={forecast.metadata} cached={forecast.cached} />
+          </div>
+        )}
 
         {/* Route Segments */}
         <div>

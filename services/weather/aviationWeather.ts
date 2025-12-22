@@ -24,9 +24,13 @@ export interface SegmentForecast extends RoutePoint {
 }
 
 export interface ForecastMetadata {
+  /** PIREPs close to the route corridor (not the whole bounding box) */
   pirepCount: number
+  /** Turbulence-relevant SIGMETs in the route region */
   sigmetCount: number
+  /** Turbulence-relevant AIRMETs in the route region */
   airmetCount: number
+  /** How much live/official data is available to support the forecast */
   dataQuality: 'high' | 'medium' | 'low'
   lastUpdated: Date
   usingFallback: boolean
@@ -64,15 +68,15 @@ export async function generateTurbulenceForecast(
       }
     })
 
-    // Calculate data quality based on available reports
-    const pirepCount = turbulenceData.pireps.length
-    const sigmetCount = turbulenceData.sigmets.length
-    const airmetCount = turbulenceData.airmets.length
+    // Calculate data support based on *route-relevant* reports/advisories
+    const pirepCount = countPirepsAlongRoute(waypoints, turbulenceData.pireps)
+    const sigmetCount = countTurbulenceAdvisories(turbulenceData.sigmets)
+    const airmetCount = countTurbulenceAdvisories(turbulenceData.airmets)
 
     let dataQuality: 'high' | 'medium' | 'low' = 'low'
-    if (pirepCount >= 5 || sigmetCount >= 2) {
+    if (pirepCount >= 3 || sigmetCount >= 2 || airmetCount >= 2) {
       dataQuality = 'high'
-    } else if (pirepCount >= 2 || sigmetCount >= 1 || airmetCount >= 1) {
+    } else if (pirepCount >= 1 || sigmetCount >= 1 || airmetCount >= 1) {
       dataQuality = 'medium'
     }
 
@@ -113,6 +117,49 @@ interface AviationWeatherData {
   sigmets: any[]
   airmets: any[]
   pireps: any[] // Pilot reports
+}
+
+function countTurbulenceAdvisories(reports: any[]): number {
+  // Only count advisories that are likely turbulence-related (reduces noise).
+  return (reports || []).filter((report: any) => {
+    const hazard = String(report?.hazard ?? '').toLowerCase()
+    const raw = String(report?.raw ?? report?.rawText ?? report?.text ?? '').toLowerCase()
+    return (
+      hazard.includes('turb') ||
+      hazard.includes('convection') ||
+      raw.includes('turb') ||
+      raw.includes('convection')
+    )
+  }).length
+}
+
+function countPirepsAlongRoute(waypoints: RoutePoint[], pireps: any[]): number {
+  // PIREPs are sparse; we only count ones plausibly near the route corridor.
+  // This keeps the UI honest: "0" means "none near your track right now",
+  // not "none anywhere in a massive bounding box".
+  const radiusNm = 50
+  const reports = (pireps || []).filter((p: any) => p?.lat && p?.lon)
+  if (reports.length === 0 || waypoints.length === 0) return 0
+
+  // Cap waypoint checks per report (performance) by sampling the route.
+  const step = Math.max(1, Math.floor(waypoints.length / 120))
+  const seen = new Set<string>()
+
+  for (const p of reports) {
+    const key = `${p.lat},${p.lon},${p?.obsTime ?? p?.time ?? ''},${p?.turbulence?.intensity ?? ''}`
+    if (seen.has(key)) continue
+
+    for (let i = 0; i < waypoints.length; i += step) {
+      const wp = waypoints[i]
+      const d = calculateDistance(wp.lat, wp.lon, p.lat, p.lon)
+      if (d < radiusNm) {
+        seen.add(key)
+        break
+      }
+    }
+  }
+
+  return seen.size
 }
 
 async function fetchAviationWeatherData(waypoints: RoutePoint[]): Promise<AviationWeatherData> {
