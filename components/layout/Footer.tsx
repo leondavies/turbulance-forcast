@@ -73,7 +73,7 @@ export function Footer() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-blue-400 mt-1">✓</span>
-                <span>Airport & aircraft reference data (local database)</span>
+                <span>Airport & aircraft reference data</span>
               </li>
             </ul>
           </div>

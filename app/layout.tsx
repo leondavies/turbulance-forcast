@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     title: "TurbCast — Flight turbulence forecast",
     description:
       "Check expected turbulence for your flight route using live aviation weather data.",
-    images: ["/twitter-image"],
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,
