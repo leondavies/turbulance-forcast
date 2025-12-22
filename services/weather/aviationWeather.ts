@@ -99,12 +99,15 @@ export async function generateTurbulenceForecast(
     // Calculate data support based on *route-relevant* reports/advisories
     const pirepCount = countPirepsAlongRoute(waypoints, turbulenceData.pireps)
     const sigmetCount = countTurbulenceAdvisories(turbulenceData.sigmets)
+    const intlSigmetCount = countTurbulenceAdvisories(turbulenceData.intlSigmets)
     const airmetCount = countTurbulenceAdvisories(turbulenceData.airmets)
+    const gairmetCount = countTurbulenceAdvisories(turbulenceData.gairmets)
+    const totalAdvisories = sigmetCount + intlSigmetCount + airmetCount + gairmetCount
 
     let dataQuality: 'high' | 'medium' | 'low' = 'low'
-    if (pirepCount >= 3 || sigmetCount >= 2 || airmetCount >= 2) {
+    if (pirepCount >= 3 || totalAdvisories >= 2) {
       dataQuality = 'high'
-    } else if (pirepCount >= 1 || sigmetCount >= 1 || airmetCount >= 1) {
+    } else if (pirepCount >= 1 || totalAdvisories >= 1) {
       dataQuality = 'medium'
     }
 
@@ -173,8 +176,10 @@ export async function generateTurbulenceForecast(
 }
 
 interface AviationWeatherData {
-  sigmets: any[]
+  sigmets: any[] // Domestic SIGMETs
+  intlSigmets: any[] // International SIGMETs
   airmets: any[]
+  gairmets: any[] // Graphical AIRMETs (forecast turbulence areas)
   pireps: any[] // Pilot reports
 }
 
@@ -230,39 +235,67 @@ async function fetchAviationWeatherData(waypoints: RoutePoint[]): Promise<Aviati
   const minLon = Math.min(...lons) - 2
   const maxLon = Math.max(...lons) + 2
 
+  // Get typical cruise altitude for filtering
+  const avgAltitude = waypoints.reduce((sum, p) => sum + p.altitude, 0) / waypoints.length
+
   // Aviation Weather Center API endpoint
   const baseUrl = 'https://aviationweather.gov/api/data'
 
   try {
-    // Fetch SIGMETs (Significant Meteorological Information) for turbulence
-    const sigmetUrl = `${baseUrl}/sigmet?bbox=${minLon},${minLat},${maxLon},${maxLat}&format=json`
-    const sigmetResponse = await fetch(sigmetUrl, {
-      headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
-      next: { revalidate: 1800 }
-    }) // Cache for 30 min
+    // Fetch all data sources in parallel for better performance
+    const [sigmetResponse, intlSigmetResponse, airmetResponse, gairmetResponse, pirepResponse] = await Promise.all([
+      // Domestic SIGMETs (Significant Meteorological Information) for turbulence
+      fetch(`${baseUrl}/airsigmet?format=json&hazard=turb&level=${Math.round(avgAltitude)}`, {
+        headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
+        next: { revalidate: 1800 }
+      }),
+
+      // International SIGMETs for global route coverage
+      fetch(`${baseUrl}/isigmet?format=json&hazard=turb&level=${Math.round(avgAltitude)}`, {
+        headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
+        next: { revalidate: 1800 }
+      }),
+
+      // AIRMETs (Airmen's Meteorological Information) for turbulence
+      fetch(`${baseUrl}/airmet?bbox=${minLon},${minLat},${maxLon},${maxLat}&format=json&hazard=turb`, {
+        headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
+        next: { revalidate: 1800 }
+      }),
+
+      // G-AIRMETs (Graphical AIRMETs) for forecast turbulence areas (0-12 hour forecasts)
+      fetch(`${baseUrl}/gairmet?format=json&hazard=turb-hi,turb-lo`, {
+        headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
+        next: { revalidate: 1800 }
+      }),
+
+      // PIREPs (Pilot Reports) filtered by age (2 hours) and altitude
+      fetch(`${baseUrl}/pirep?bbox=${minLon},${minLat},${maxLon},${maxLat}&format=json&age=2&level=${Math.round(avgAltitude)}`, {
+        headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
+        next: { revalidate: 600 }
+      })
+    ])
+
     const sigmets = sigmetResponse.ok ? await sigmetResponse.json() : []
-
-    // Fetch AIRMETs (Airmen's Meteorological Information) for turbulence
-    const airmetUrl = `${baseUrl}/airmet?bbox=${minLon},${minLat},${maxLon},${maxLat}&format=json`
-    const airmetResponse = await fetch(airmetUrl, {
-      headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
-      next: { revalidate: 1800 }
-    })
+    const intlSigmets = intlSigmetResponse.ok ? await intlSigmetResponse.json() : []
     const airmets = airmetResponse.ok ? await airmetResponse.json() : []
-
-    // Fetch PIREPs (Pilot Reports) for actual turbulence observations
-    const pirepUrl = `${baseUrl}/pirep?bbox=${minLon},${minLat},${maxLon},${maxLat}&format=json`
-    const pirepResponse = await fetch(pirepUrl, {
-      headers: { 'User-Agent': 'TurbCast/1.0', 'Accept': 'application/json' },
-      next: { revalidate: 600 }
-    }) // Cache for 10 min
+    const gairmets = gairmetResponse.ok ? await gairmetResponse.json() : []
     const pireps = pirepResponse.ok ? await pirepResponse.json() : []
 
-    return { sigmets, airmets, pireps }
+    return { sigmets, intlSigmets, airmets, gairmets, pireps }
   } catch (error) {
     console.error('Error fetching from Aviation Weather Center:', error)
-    return { sigmets: [], airmets: [], pireps: [] }
+    return { sigmets: [], intlSigmets: [], airmets: [], gairmets: [], pireps: [] }
   }
+}
+
+/**
+ * Weighted confidence system for blending multiple turbulence data sources.
+ * Higher confidence sources override lower confidence ones.
+ */
+interface TurbulenceSource {
+  edr: number
+  confidence: number // 0-1 scale
+  source: 'pirep' | 'sigmet' | 'airmet' | 'gairmet' | 'wafs' | 'heuristic'
 }
 
 function calculateTurbulenceForPoint(
@@ -274,56 +307,105 @@ function calculateTurbulenceForPoint(
   wafsEdr?: number,
   wafsWindSpeedKt?: number
 ): TurbulenceData {
-  // Start with model guidance if available, otherwise a smooth baseline.
-  let baseEDR = typeof wafsEdr === 'number' ? wafsEdr : 0.05
+  const sources: TurbulenceSource[] = []
 
-  // Check for turbulence reports in the area (within ~50nm)
+  // 1. WAFS model baseline (confidence: 0.6)
+  if (typeof wafsEdr === 'number') {
+    sources.push({ edr: wafsEdr, confidence: 0.6, source: 'wafs' })
+  }
+
+  // 2. PIREPs - Real pilot observations (confidence: 0.9-1.0, decays with distance)
   const nearbyReports = weatherData.pireps.filter((pirep: any) => {
     if (!pirep.lat || !pirep.lon) return false
     const distance = calculateDistance(point.lat, point.lon, pirep.lat, pirep.lon)
     return distance < 50 // Within 50 nautical miles
   })
 
-  // Analyze pilot reports for turbulence
   nearbyReports.forEach((pirep: any, reportIdx: number) => {
     if (pirep.turbulence) {
+      const distance = calculateDistance(point.lat, point.lon, pirep.lat, pirep.lon)
+      // Confidence decays with distance: 1.0 at 0nm, 0.7 at 50nm
+      const distanceConfidence = 1.0 - (distance / 50) * 0.3
+
       const intensity = pirep.turbulence.intensity || ''
+      let edr = 0.05
+
       if (intensity.includes('SEV') || intensity.includes('EXTREME')) {
-        baseEDR = Math.max(baseEDR, 0.45 + seededRandom(point.lat, point.lon, index, reportIdx) * 0.15)
+        edr = 0.45 + seededRandom(point.lat, point.lon, index, reportIdx) * 0.15
       } else if (intensity.includes('MOD')) {
-        baseEDR = Math.max(baseEDR, 0.25 + seededRandom(point.lat, point.lon, index, reportIdx + 100) * 0.1)
+        edr = 0.25 + seededRandom(point.lat, point.lon, index, reportIdx + 100) * 0.1
       } else if (intensity.includes('LGT')) {
-        baseEDR = Math.max(baseEDR, 0.15 + seededRandom(point.lat, point.lon, index, reportIdx + 200) * 0.05)
+        edr = 0.15 + seededRandom(point.lat, point.lon, index, reportIdx + 200) * 0.05
       }
+
+      sources.push({ edr, confidence: distanceConfidence, source: 'pirep' })
     }
   })
 
-  // Check SIGMETs and AIRMETs for turbulence warnings
-  const turbulenceWarnings = [...weatherData.sigmets, ...weatherData.airmets].filter(
-    (report: any) => {
-      if (!report.hazard) return false
-      const hazard = report.hazard.toLowerCase()
-      return hazard.includes('turb') || hazard.includes('convection')
+  // 3. SIGMETs/AIRMETs - Official warnings (confidence: 0.85)
+  const turbulenceWarnings = [
+    ...weatherData.sigmets,
+    ...weatherData.intlSigmets,
+    ...weatherData.airmets
+  ].filter((report: any) => {
+    if (!report.hazard) return false
+    const hazard = report.hazard.toLowerCase()
+    return hazard.includes('turb') || hazard.includes('convection')
+  })
+
+  turbulenceWarnings.forEach((warning: any) => {
+    let edr = 0.05
+    if (warning.severity?.includes('SEV')) {
+      edr = 0.4
+    } else if (warning.severity?.includes('MOD')) {
+      edr = 0.25
     }
-  )
+    sources.push({ edr, confidence: 0.85, source: 'sigmet' })
+  })
 
-  if (turbulenceWarnings.length > 0) {
-    turbulenceWarnings.forEach((warning: any) => {
-      if (warning.severity?.includes('SEV')) {
-        baseEDR = Math.max(baseEDR, 0.4)
-      } else if (warning.severity?.includes('MOD')) {
-        baseEDR = Math.max(baseEDR, 0.25)
-      }
-    })
+  // 4. G-AIRMETs - Forecast turbulence areas (confidence: 0.7)
+  const gairmetTurbulence = weatherData.gairmets.filter((g: any) => {
+    if (!g.hazard) return false
+    const hazard = g.hazard.toLowerCase()
+    return hazard.includes('turb')
+  })
+
+  gairmetTurbulence.forEach((gairmet: any) => {
+    const hazard = String(gairmet.hazard || '').toLowerCase()
+    let edr = 0.05
+    // turb-hi = high altitude turbulence (>FL200), turb-lo = low altitude (<FL200)
+    if (hazard.includes('turb-hi') && point.altitude > 20000) {
+      edr = 0.2
+    } else if (hazard.includes('turb-lo') && point.altitude <= 20000) {
+      edr = 0.2
+    }
+    if (edr > 0.05) {
+      sources.push({ edr, confidence: 0.7, source: 'gairmet' })
+    }
+  })
+
+  // 5. Heuristic fallback (confidence: 0.3)
+  if (sources.length === 0) {
+    const heuristicEDR = calculateAtmosphericEDR(point, index, total)
+    sources.push({ edr: heuristicEDR, confidence: 0.3, source: 'heuristic' })
   }
 
-  // If we *still* have only baseline (no model + no reports/advisories),
-  // fall back to a heuristic atmospheric estimate.
-  if (baseEDR === 0.05 && typeof wafsEdr !== 'number') {
-    baseEDR = calculateAtmosphericEDR(point, index, total)
+  // Blend sources using weighted maximum (highest confidence source wins)
+  let finalEDR = 0.05
+  let maxConfidence = 0
+
+  for (const src of sources) {
+    // Weight the EDR by confidence and use weighted maximum
+    const weightedEDR = src.edr * src.confidence
+    const currentWeighted = finalEDR * maxConfidence
+
+    if (weightedEDR > currentWeighted) {
+      finalEDR = src.edr
+      maxConfidence = src.confidence
+    }
   }
 
-  return calculateTurbulenceLevel(baseEDR, point, wafsWindSpeedKt)
+  return calculateTurbulenceLevel(finalEDR, point, wafsWindSpeedKt)
 }
 
 function calculateAtmosphericTurbulence(point: RoutePoint, index: number, total: number): TurbulenceData {
