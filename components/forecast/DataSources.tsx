@@ -15,6 +15,7 @@ interface DataSourcesProps {
 
 export function DataSources({ metadata, cached }: DataSourcesProps) {
   const { pirepCount, sigmetCount, airmetCount, dataQuality, lastUpdated, usingFallback } = metadata
+  const hasAnyReports = pirepCount > 0 || sigmetCount > 0 || airmetCount > 0
 
   // Calculate how long ago the data was updated
   const minutesAgo = Math.round((Date.now() - new Date(lastUpdated).getTime()) / 60000)
@@ -41,13 +42,21 @@ export function DataSources({ metadata, cached }: DataSourcesProps) {
     low: 'Limited',
   }[dataQuality]
 
-  const supportDescription = usingFallback
-    ? 'Model-only right now (live aviation data was unavailable).'
+  const supportSummary = usingFallback
+    ? 'Model-based forecast (reports unavailable)'
+    : dataQuality === 'high'
+      ? 'Strong support from recent reports/advisories'
+      : dataQuality === 'medium'
+        ? 'Some support from recent reports/advisories'
+        : 'No recent reports found near this route'
+
+  const supportDetail = usingFallback
+    ? "Forecast generated from atmospheric models. Recent pilot reports/advisories weren’t available at the time of this forecast."
     : dataQuality === 'high'
       ? 'Multiple recent reports/advisories support this route.'
       : dataQuality === 'medium'
         ? 'Some reports/advisories were available near this route.'
-        : 'Limited recent reports were available near this route (common).'
+        : "No recent reports were found near this route right now. That can mean conditions are uneventful — or simply that fewer reports were available."
 
   return (
     <Card>
@@ -58,33 +67,71 @@ export function DataSources({ metadata, cached }: DataSourcesProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <details className="group rounded-lg border bg-white">
-          <summary className="cursor-pointer list-none p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{qualityIcon}</span>
-                  <div className="font-semibold text-sm text-gray-900">
+        <details className="group rounded-xl border bg-white overflow-hidden">
+          <summary className="cursor-pointer list-none p-4 sm:p-5">
+            {/* Mobile: 3-row layout so the summary can use full width */}
+            <div className="sm:hidden space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-xl leading-none">{qualityIcon}</span>
+                  <div className="font-semibold text-base text-gray-900">
                     Data support: {supportLabel}
                   </div>
-                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${qualityColor}`}>
-                    {dataQuality.toUpperCase()}
-                  </span>
                 </div>
-                <div className="mt-1 text-xs text-gray-600">
-                  {supportDescription}
+                <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${qualityColor}`}>
+                  {dataQuality.toUpperCase()}
+                </span>
+              </div>
+
+              <div className="text-sm text-gray-600">
+                {supportSummary}
+              </div>
+
+              <div className="flex items-center justify-end gap-1.5 text-xs text-gray-600">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <span>Updated {timeAgoText}</span>
+                <span className="text-gray-400 group-open:rotate-180 transition-transform leading-none">
+                  ▾
+                </span>
+              </div>
+            </div>
+
+            {/* Tablet/Desktop: compact two-column layout */}
+            <div className="hidden sm:flex items-stretch justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl leading-none">{qualityIcon}</span>
+                  <div className="font-semibold text-sm sm:text-base text-gray-900">
+                    Data support: {supportLabel}
+                  </div>
+                </div>
+
+                <div className="mt-1 text-xs sm:text-sm text-gray-600">
+                  {supportSummary}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-shrink-0 text-xs text-gray-600">
-                <Clock className="h-4 w-4 text-gray-500" />
-                <span>Updated {timeAgoText}</span>
-                <span className="text-gray-400 group-open:rotate-180 transition-transform">▾</span>
+              <div className="self-stretch flex flex-col items-end justify-between flex-shrink-0">
+                <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${qualityColor}`}>
+                  {dataQuality.toUpperCase()}
+                </span>
+                <div className="flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-600">
+                  <Clock className="h-4 w-4 text-gray-500" />
+                  <span>Updated {timeAgoText}</span>
+                  <span className="text-gray-400 group-open:rotate-180 transition-transform leading-none">
+                    ▾
+                  </span>
+                </div>
               </div>
             </div>
           </summary>
 
           <div className="px-4 pb-4 pt-0 space-y-4">
+            {/* What this means */}
+            <div className="text-sm text-gray-700 leading-relaxed">
+              {supportDetail}
+            </div>
+
             {/* Data Sources Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-100">
@@ -133,19 +180,21 @@ export function DataSources({ metadata, cached }: DataSourcesProps) {
               {usingFallback && (
                 <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-md border border-yellow-100">
                   <span>⚠️</span>
-                  <span>Using the model only (live aviation data unavailable)</span>
+                  <span>Model-based forecast (recent reports/advisories unavailable for this run)</span>
                 </div>
               )}
-              {!usingFallback && (pirepCount > 0 || sigmetCount > 0 || airmetCount > 0) && (
+              {!usingFallback && hasAnyReports && (
                 <div className="flex items-center gap-2 p-2 bg-green-50 rounded-md border border-green-100">
                   <span>✓</span>
                   <span>Includes official advisories and any nearby pilot reports available</span>
                 </div>
               )}
-              {!usingFallback && pirepCount === 0 && sigmetCount === 0 && airmetCount === 0 && (
+              {!usingFallback && !hasAnyReports && (
                 <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md border border-gray-200">
                   <span>ℹ️</span>
-                  <span>No recent reports were available near this route — that’s common.</span>
+                  <span>
+                    No recent reports were found near this route right now. That can mean conditions are uneventful — or simply that fewer reports were available.
+                  </span>
                 </div>
               )}
             </div>

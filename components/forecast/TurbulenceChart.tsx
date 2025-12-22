@@ -30,28 +30,15 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
   const climbEnd = 0.15 // First 15% is climb
   const descentStart = 0.80 // Last 20% is descent
 
-  // Use fixed EDR scale (0-0.6) to match turbulence thresholds
-  const maxEDR = 0.6
   const minEDR = 0
 
-  // Create path data for turbulence line
-  const pathPoints = forecast.map((point, i) => {
-    const x = (i / (forecast.length - 1)) * chartWidth
-    const y = chartHeight - ((point.turbulence.edr - minEDR) / (maxEDR - minEDR)) * chartHeight
-    return { x, y, ...point }
-  })
-
-  const linePath = pathPoints
-    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
-    .join(' ')
-
-  // Create area path (for uncertainty band)
-  const areaPath = `
-    M 0 ${chartHeight}
-    ${pathPoints.map(p => `L ${p.x} ${p.y + 20}`).join(' ')}
-    L ${chartWidth} ${chartHeight}
-    Z
-  `
+  // Dynamic Y scale:
+  // - If there is no severe turbulence, don't waste vertical space rendering the severe band.
+  // - For short/smooth flights, tighten further so light/moderate changes are readable.
+  const observedMaxEDR = forecast.reduce((m, p) => Math.max(m, p.turbulence.edr || 0), 0)
+  const hasSevere = observedMaxEDR >= 0.4
+  const hasModerate = observedMaxEDR >= 0.25
+  const maxEDR = hasSevere ? 0.6 : hasModerate ? 0.4 : 0.25
 
   // Turbulence levels for sidebar (matching actual EDR thresholds)
   // Ordered from low to high severity
@@ -62,8 +49,73 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
     { level: 'severe', label: 'Severe', color: '#ef4444', desc: 'EDR ≥ 0.40', min: 0.40, max: 0.60 },
   ]
 
-  // Flight duration in hours
-  const durationHours = Math.ceil(route.estimatedDuration / 60)
+  const activeLevels = levels.filter((lvl) => (hasSevere ? true : lvl.level !== 'severe'))
+
+  // X-axis ticks:
+  // - < 3 hours: show 30 minute increments
+  // - otherwise: hourly is fine
+  const durationMinutes = Math.max(0, route.estimatedDuration || 0)
+  const totalHoursExact = durationMinutes / 60
+  const tickStepHours = totalHoursExact > 0 && totalHoursExact < 3 ? 0.5 : 1
+  const tickMaxHours = Math.ceil(totalHoursExact / tickStepHours) * tickStepHours
+
+  const formatHourTick = (h: number) => {
+    if (tickStepHours === 1) return `${h}`
+    const totalM = Math.round(h * 60)
+    const hh = Math.floor(totalM / 60)
+    const mm = totalM % 60
+    return `${hh}:${mm.toString().padStart(2, '0')}`
+  }
+
+  const hourTicks = Array.from(
+    { length: Math.floor(tickMaxHours / tickStepHours) + 1 },
+    (_, i) => i * tickStepHours
+  )
+
+  // Create path data for turbulence line (uses dynamic maxEDR)
+  const denom = Math.max(1, forecast.length - 1)
+  const pathPoints = forecast.map((point, i) => {
+    const x = (i / denom) * chartWidth
+    const y =
+      chartHeight - ((point.turbulence.edr - minEDR) / (maxEDR - minEDR)) * chartHeight
+    return { x, y, ...point }
+  })
+
+  const linePath = pathPoints
+    .map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`)
+    .join(' ')
+
+  const PlaneGlyph = ({
+    x,
+    y,
+    angle,
+  }: {
+    x: number
+    y: number
+    angle: number
+  }) => {
+    // Simple plane glyph (SVG path) so orientation is consistent across OS/browser.
+    // Designed in a 24x24 box and centered via translate(-12,-12).
+    return (
+      <g
+        transform={`translate(${x} ${y}) rotate(${angle}) translate(-12 -12)`}
+        opacity={0.35}
+      >
+        <path
+          d="M2 16l20-4-20-4v3l8 1-8 1z"
+          fill="#94a3b8"
+        />
+      </g>
+    )
+  }
+
+  // Create area path (for uncertainty band)
+  const areaPath = `
+    M 0 ${chartHeight}
+    ${pathPoints.map(p => `L ${p.x} ${p.y + 20}`).join(' ')}
+    L ${chartWidth} ${chartHeight}
+    Z
+  `
 
   const levelPriority: Record<string, number> = {
     severe: 4,
@@ -245,10 +297,14 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
       {/* Chart container */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Turbulence level legend - horizontal on mobile, vertical on desktop */}
-        <div className="lg:w-24 flex-shrink-0">
+        <div className="lg:w-24 flex-shrink-0 lg:self-stretch">
           {/* On desktop, reverse the vertical order so it matches the chart bands (severe at top → smooth at bottom). */}
-          <div className="flex lg:flex-col-reverse gap-2 lg:gap-0">
-            {levels.map((lvl) => {
+          {/* Align legend bottom with the chart's x-axis line by padding to match the SVG's plot area.
+              SVG viewBox is 1000x300 with paddingTop=20 and paddingBottom=50:
+              - top offset = 20/300 = 6.666%
+              - bottom label area = 50/300 = 16.666% */}
+          <div className="flex lg:flex-col-reverse gap-2 lg:gap-0 lg:h-full lg:pt-[6.666%] lg:pb-[16.666%] lg:justify-start">
+            {activeLevels.map((lvl) => {
               return (
                 <div
                   key={lvl.level}
@@ -277,18 +333,24 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
 
         {/* Main chart */}
         <div className="flex-1 overflow-x-auto">
-          <svg
-            viewBox={`0 0 ${width} ${height}`}
-            className="w-full h-auto max-h-[300px] sm:max-h-[400px]"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            <g transform={`translate(${padding.left}, ${padding.top})`}>
+          {/* Use an aspect-ratio wrapper so the legend can align to the x-axis line reliably. */}
+          <div className="relative w-full aspect-[1000/300] min-w-[640px]">
+            <svg
+              viewBox={`0 0 ${width} ${height}`}
+              className="absolute inset-0 w-full h-full"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <g transform={`translate(${padding.left}, ${padding.top})`}>
               {/* Turbulence level background zones */}
-              {levels.map((lvl) => {
+              {activeLevels.map((lvl) => {
                 // Calculate Y position and height based on EDR thresholds
-                const yTop = chartHeight - ((lvl.max - minEDR) / (maxEDR - minEDR)) * chartHeight
-                const yBottom = chartHeight - ((lvl.min - minEDR) / (maxEDR - minEDR)) * chartHeight
+                const clampedMax = Math.min(lvl.max, maxEDR)
+                const clampedMin = Math.min(lvl.min, maxEDR)
+                const yTop = chartHeight - ((clampedMax - minEDR) / (maxEDR - minEDR)) * chartHeight
+                const yBottom = chartHeight - ((clampedMin - minEDR) / (maxEDR - minEDR)) * chartHeight
                 const height = yBottom - yTop
+
+                if (height <= 0) return null
 
                 return (
                   <rect
@@ -340,20 +402,26 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
               />
 
               {/* Plane icons */}
-              {/* Climb phase */}
-              <g transform={`translate(${climbEnd * chartWidth / 2}, ${chartHeight - 10})`}>
-                <text fontSize="24" opacity="0.4">✈️</text>
-              </g>
+              {/* Climb phase (tilt up) */}
+              <PlaneGlyph
+                x={(climbEnd * chartWidth) / 2}
+                y={chartHeight - 10}
+                angle={-20}
+              />
 
-              {/* Cruise phase */}
-              <g transform={`translate(${(climbEnd + descentStart) * chartWidth / 2}, ${chartHeight - 10})`}>
-                <text fontSize="24" opacity="0.4">✈️</text>
-              </g>
+              {/* Cruise phase (level) */}
+              <PlaneGlyph
+                x={((climbEnd + descentStart) * chartWidth) / 2}
+                y={chartHeight - 10}
+                angle={0}
+              />
 
-              {/* Descent phase */}
-              <g transform={`translate(${(descentStart + 1) * chartWidth / 2}, ${chartHeight - 10})`}>
-                <text fontSize="24" opacity="0.4">✈️</text>
-              </g>
+              {/* Descent phase (tilt down) */}
+              <PlaneGlyph
+                x={((descentStart + 1) * chartWidth) / 2}
+                y={chartHeight - 10}
+                angle={20}
+              />
 
               {/* X-Axis (time) */}
               <line
@@ -365,9 +433,9 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
                 strokeWidth="1"
               />
 
-              {/* X-Axis labels (hours) */}
-              {Array.from({ length: durationHours + 1 }).map((_, i) => {
-                const x = (i / durationHours) * chartWidth
+              {/* X-Axis labels (time) */}
+              {hourTicks.map((h, i) => {
+                const x = tickMaxHours > 0 ? (h / tickMaxHours) * chartWidth : 0
                 return (
                   <g key={i}>
                     <line
@@ -385,7 +453,7 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
                       fontSize="12"
                       fill="#000"
                     >
-                      {i}
+                      {formatHourTick(h)}
                     </text>
                   </g>
                 )
@@ -399,7 +467,7 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
                 fontSize="14"
                 fill="#000"
               >
-                Flight hours
+                Flight time
               </text>
 
               {/* Y-Axis */}
@@ -413,31 +481,35 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
               />
 
               {/* Y-Axis labels (EDR values) */}
-              {Array.from({ length: 7 }).map((_, i) => {
-                const value = ((6 - i) * 0.1).toFixed(1)
-                const y = (i / 6) * chartHeight
-                return (
-                  <g key={i}>
-                    <line
-                      x1={-6}
-                      y1={y}
-                      x2={0}
-                      y2={y}
-                      stroke="#000"
-                      strokeWidth="1"
-                    />
-                    <text
-                      x={-10}
-                      y={y + 4}
-                      textAnchor="end"
-                      fontSize="12"
-                      fill="#000"
-                    >
-                      {value}
-                    </text>
-                  </g>
-                )
-              })}
+              {(() => {
+                const step = maxEDR <= 0.25 ? 0.05 : 0.1
+                const steps = Math.max(1, Math.round(maxEDR / step))
+                return Array.from({ length: steps + 1 }).map((_, i) => {
+                  const value = maxEDR - i * step
+                  const y = (i / steps) * chartHeight
+                  return (
+                    <g key={i}>
+                      <line
+                        x1={-6}
+                        y1={y}
+                        x2={0}
+                        y2={y}
+                        stroke="#000"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x={-10}
+                        y={y + 4}
+                        textAnchor="end"
+                        fontSize="12"
+                        fill="#000"
+                      >
+                        {value.toFixed(step < 0.1 ? 2 : 1)}
+                      </text>
+                    </g>
+                  )
+                })
+              })()}
 
               {/* Airport labels */}
               <text
@@ -460,8 +532,9 @@ export function TurbulenceChart({ forecast, route, origin, destination }: Turbul
               >
                 {destination}
               </text>
-            </g>
-          </svg>
+              </g>
+            </svg>
+          </div>
         </div>
       </div>
 
