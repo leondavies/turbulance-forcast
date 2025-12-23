@@ -65,35 +65,24 @@ export async function generateTurbulenceForecast(
   waypoints: RoutePoint[],
   opts?: { departureTime?: Date; aircraftIata?: string; durationMinutes?: number }
 ): Promise<ForecastResult> {
-  // Try data sources in priority order:
-  // 1. NOMADS GRIB2 (raw gridded data - highest accuracy)
-  // 2. WAFS PNG sampling (fallback if NOMADS unavailable)
-  // 3. Heuristic calculation (last resort)
+  // Data sources in priority order:
+  // 1. WAFS PNG sampling (proven working source)
+  // 2. Heuristic calculation (fallback)
+  // Note: NOMADS GRIB2 disabled - WAFS data not available via NOMADS public endpoints
 
   let wafs: Awaited<ReturnType<typeof sampleNomadsWafsAlongRoute>> | Awaited<ReturnType<typeof sampleWafsModelAlongRoute>> | null = null
 
-  // Try NOMADS GRIB2 first
+  // Use WAFS PNG sampling (aviationweather.gov)
   try {
-    console.log('[TurbCast] Attempting NOMADS GRIB2 fetch...')
-    wafs = await sampleNomadsWafsAlongRoute(waypoints, {
+    console.log('[TurbCast] Fetching WAFS PNG model data...')
+    wafs = await sampleWafsModelAlongRoute(waypoints, {
       departureTime: opts?.departureTime,
       durationMinutes: opts?.durationMinutes,
     })
-    console.log('[TurbCast] NOMADS GRIB2 fetch successful')
+    console.log('[TurbCast] WAFS PNG sampling successful')
   } catch (error) {
-    console.warn('[TurbCast] NOMADS GRIB2 unavailable, falling back to PNG sampling:', error)
-
-    // Fallback to PNG sampling
-    try {
-      wafs = await sampleWafsModelAlongRoute(waypoints, {
-        departureTime: opts?.departureTime,
-        durationMinutes: opts?.durationMinutes,
-      })
-      console.log('[TurbCast] WAFS PNG sampling successful (fallback)')
-    } catch (pngError) {
-      console.error('[TurbCast] WAFS PNG sampling also failed:', pngError)
-      wafs = null
-    }
+    console.error('[TurbCast] WAFS PNG sampling failed:', error)
+    wafs = null
   }
 
   try {
