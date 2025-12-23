@@ -70,7 +70,7 @@ export async function generateTurbulenceForecast(
   // 2. WAFS PNG sampling (fallback if NOMADS unavailable)
   // 3. Heuristic calculation (last resort)
 
-  let wafs: Awaited<ReturnType<typeof sampleNomadsWafsAlongRoute>> | null = null
+  let wafs: Awaited<ReturnType<typeof sampleNomadsWafsAlongRoute>> | Awaited<ReturnType<typeof sampleWafsModelAlongRoute>> | null = null
 
   // Try NOMADS GRIB2 first
   try {

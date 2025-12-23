@@ -146,8 +146,9 @@ async function fetchAndParseGrib2(url: string): Promise<Map<number, GribGrid>> {
     ) {
       // Check if this is a pressure level we care about
       const pressureMb = msg.level // e.g., 300 for FL300
+      const validLevels = Object.values(FLIGHT_LEVELS) as number[]
 
-      if (Object.values(FLIGHT_LEVELS).includes(pressureMb)) {
+      if (validLevels.includes(pressureMb)) {
         const grid = extractGridFromMessage(msg)
         if (grid) {
           grids.set(pressureMb, grid)
