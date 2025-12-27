@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Header, Footer } from "@/components/layout";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
-
-const SITE_URL = "https://www.turbcast.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -32,9 +31,6 @@ export const metadata: Metadata = {
     title: "TurbCast - Real-Time Flight Turbulence Forecast",
     description: "Real-time turbulence forecasts for your flight",
     images: ["/opengraph.png"],
-  },
-  alternates: {
-    canonical: "/",
   },
 };
 

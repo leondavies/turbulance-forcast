@@ -9,6 +9,7 @@ import { TurbulenceMap } from './TurbulenceMap'
 import { TurbulenceSummary } from './TurbulenceSummary'
 import { RouteSegments } from './RouteSegments'
 import { TurbulenceChart } from './TurbulenceChart'
+import { WindChart } from './WindChart'
 import { DataSources } from './DataSources'
 import { FullPageLoader } from '@/components/ui/FullPageLoader'
 
@@ -191,6 +192,26 @@ export function ForecastContent() {
                 route={forecast.route}
                 origin={forecast.origin.iata}
                 destination={forecast.destination.iata}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Wind Chart */}
+        <div className="mb-6">
+          <Card className="border-2 border-blue-200">
+            <CardHeader>
+              <CardTitle className="text-2xl">Wind Forecast Chart</CardTitle>
+              <CardDescription>Wind conditions and headwind/tailwind analysis</CardDescription>
+            </CardHeader>
+            <CardContent className="p-3 sm:p-6">
+              <WindChart
+                forecast={forecast.forecast}
+                route={forecast.route}
+                origin={forecast.origin.iata}
+                destination={forecast.destination.iata}
+                originCoords={{ lat: forecast.origin.lat, lon: forecast.origin.lon }}
+                destinationCoords={{ lat: forecast.destination.lat, lon: forecast.destination.lon }}
               />
             </CardContent>
           </Card>

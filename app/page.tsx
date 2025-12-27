@@ -6,6 +6,16 @@ import { JsonLd } from "@/components/seo/JsonLd"
 import { SITE_URL } from "@/lib/site"
 import { TOP_ROUTE_GROUPS } from "@/lib/seo/topRoutes"
 import { PopularRoutesByRegion } from "@/components/home/PopularRoutesByRegion"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    url: SITE_URL,
+  },
+}
 
 export default function Home() {
   return (

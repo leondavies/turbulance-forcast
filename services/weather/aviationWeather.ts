@@ -1,6 +1,7 @@
 import type { RoutePoint } from '../route/greatCircle'
 import { sampleNomadsWafsAlongRoute } from './nomadsGrib'
 import { sampleWafsModelAlongRoute } from './wafsModel'
+import { fetchOpenMeteoWindAlongRoute } from './openMeteoWind'
 
 export type TurbulenceLevel = 'smooth' | 'light' | 'moderate' | 'severe'
 
@@ -85,11 +86,29 @@ export async function generateTurbulenceForecast(
     wafs = null
   }
 
+  // Fetch real wind direction from Open-Meteo (free API)
+  let openMeteoWind: Awaited<ReturnType<typeof fetchOpenMeteoWindAlongRoute>> | null = null
+  try {
+    console.log('[TurbCast] Fetching wind direction from Open-Meteo...')
+    openMeteoWind = await fetchOpenMeteoWindAlongRoute(waypoints, {
+      departureTime: opts?.departureTime,
+      durationMinutes: opts?.durationMinutes,
+    })
+    console.log('[TurbCast] Open-Meteo wind data fetched successfully')
+  } catch (error) {
+    console.error('[TurbCast] Open-Meteo wind fetch failed:', error)
+    openMeteoWind = null
+  }
+
   try {
     // Fetch reports/advisories from Aviation Weather Center (PIREP/SIGMET/AIRMET)
     const turbulenceData = await fetchAviationWeatherData(waypoints)
 
     const segments = waypoints.map((point, index) => {
+      // Use Open-Meteo wind direction if available, otherwise WAFS wind speed + synthetic direction
+      const windSpeed = openMeteoWind?.windSpeedKt[index] ?? wafs?.windSpeedKtByPoint[index]
+      const windDirection = openMeteoWind?.windDirection[index]
+
       const turbulence = calculateTurbulenceForPoint(
         point,
         turbulenceData,
@@ -97,7 +116,8 @@ export async function generateTurbulenceForecast(
         waypoints.length,
         opts,
         wafs?.edrByPoint[index],
-        wafs?.windSpeedKtByPoint[index]
+        windSpeed,
+        windDirection
       )
       return {
         ...point,
@@ -314,7 +334,8 @@ function calculateTurbulenceForPoint(
   total: number,
   opts?: { departureTime?: Date; aircraftIata?: string; durationMinutes?: number },
   wafsEdr?: number,
-  wafsWindSpeedKt?: number
+  wafsWindSpeedKt?: number,
+  windDirectionOverride?: number
 ): TurbulenceData {
   const sources: TurbulenceSource[] = []
 
@@ -414,7 +435,7 @@ function calculateTurbulenceForPoint(
     }
   }
 
-  return calculateTurbulenceLevel(finalEDR, point, wafsWindSpeedKt)
+  return calculateTurbulenceLevel(finalEDR, point, wafsWindSpeedKt, windDirectionOverride)
 }
 
 function calculateAtmosphericTurbulence(point: RoutePoint, index: number, total: number): TurbulenceData {
@@ -457,7 +478,7 @@ function calculateAtmosphericEDR(point: RoutePoint, index: number, total: number
   return Math.min(edr, 0.65)
 }
 
-function calculateTurbulenceLevel(edr: number, point: RoutePoint, windSpeedOverrideKt?: number): TurbulenceData {
+function calculateTurbulenceLevel(edr: number, point: RoutePoint, windSpeedOverrideKt?: number, windDirectionOverride?: number): TurbulenceData {
   // EDR thresholds based on FAA/ICAO standards
   let level: TurbulenceLevel
 
@@ -471,18 +492,37 @@ function calculateTurbulenceLevel(edr: number, point: RoutePoint, windSpeedOverr
     level = 'severe'
   }
 
-  // Generate realistic wind data based on altitude
-  // Wind speeds generally increase with altitude
-  const baseWind = point.altitude / 400 // Rough approximation
+  // Use wind speed override from actual data source if available
+  // Otherwise use altitude-based approximation
   const windSpeed =
     typeof windSpeedOverrideKt === 'number'
       ? Math.round(windSpeedOverrideKt)
-      : Math.round(baseWind + (seededRandom(point.lat, point.lon, 0, 6) - 0.5) * 40)
+      : Math.round((point.altitude / 350) + (seededRandom(point.lat, point.lon, 0, 6) - 0.5) * 30)
 
-  // Wind direction varies by hemisphere and altitude
-  // Northern hemisphere: generally westerly at altitude
-  const baseDirection = point.lat > 0 ? 270 : 90
-  const windDirection = Math.round(baseDirection + (seededRandom(point.lat, point.lon, 0, 7) - 0.5) * 60)
+  // Wind direction - use real data from Open-Meteo if available
+  let windDirection: number
+
+  if (typeof windDirectionOverride === 'number') {
+    // Real wind direction from Open-Meteo
+    windDirection = windDirectionOverride
+  } else {
+    // Fallback: improved synthetic model based on latitude and jet stream
+    const absLat = Math.abs(point.lat)
+    const inJetStream = absLat >= 30 && absLat <= 60
+
+    let baseDirection: number
+    if (inJetStream) {
+      baseDirection = 270 // Westerlies in jet stream
+    } else if (absLat < 30) {
+      baseDirection = 90 // Easterlies in tropics (trade winds)
+    } else {
+      baseDirection = 120 // Variable in polar regions
+    }
+
+    // Add longitude-based variation to simulate weather patterns
+    const lonVariation = Math.sin(point.lon * Math.PI / 180) * 30
+    windDirection = Math.round(baseDirection + lonVariation + (seededRandom(point.lat, point.lon, 0, 7) - 0.5) * 40)
+  }
 
   return {
     edr: Math.round(edr * 1000) / 1000,
